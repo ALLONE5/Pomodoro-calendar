@@ -243,9 +243,13 @@ export class PomodoroAnimatedBar {
 		// Create celebration particles
 		for (let i = 0; i < 20; i++) {
 			setTimeout(() => {
+				if (!this.itemsContainer) return;
+
 				const particle = this.itemsContainer.createEl('span', {
 					cls: 'pomodoro-celebration-particle'
 				});
+
+				if (!particle) return;
 
 				const randomItem = this.config.items[Math.floor(Math.random() * this.config.items.length)];
 				particle.textContent = randomItem;
