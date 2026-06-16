@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+
+# Build output
+main.js
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Obsidian plugin data (user's vault)
+.obsidian/
