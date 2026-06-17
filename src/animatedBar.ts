@@ -264,7 +264,7 @@ export class PomodoroAnimatedBar {
 		// Update gold star opacity (color change from white to gold)
 		if (this.characterGold) {
 			const goldOpacity = percentage / 100;
-			this.characterGold.style.opacity = `${goldOpacity}`;
+			this.characterGold.style.setProperty('opacity', `${goldOpacity}`, 'important');
 		}
 
 		// Update white track width (shows how far the star has run)

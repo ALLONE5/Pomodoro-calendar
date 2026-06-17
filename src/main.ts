@@ -151,7 +151,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	flex-direction: column;
 	justify-content: flex-end;
 	z-index: 1000;
-	opacity: 0;
+	opacity: 1;
 	transition: opacity 0.3s ease;
 	pointer-events: none;
 }
@@ -279,7 +279,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	transform: translate(-50%, -50%);
 	font-size: 24px;
 	color: #ffd700;
-	opacity: 0;
+	opacity: 1;
 	transition: opacity 0.3s ease;
 	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
 }
