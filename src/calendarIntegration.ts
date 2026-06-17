@@ -186,16 +186,13 @@ END:VCALENDAR`;
 	/**
 	 * Create a pomodoro event in CalDAV
 	 */
-	async createPomodoroEvent(
-		session: PomodoroSession,
-		calendarId: string
-	): Promise<string | null> {
+	async createPomodoroEvent(session: PomodoroSession): Promise<string | null> {
 		if (!this.isAvailable() || !session.startTime) {
 			return null;
 		}
 
 		try {
-			const event = this.buildPomodoroEvent(session, calendarId);
+			const event = this.buildPomodoroEvent(session);
 			const eventPath = this.buildEventPath(event.id);
 			const icsData = this.generateICS(event);
 
@@ -221,10 +218,7 @@ END:VCALENDAR`;
 	/**
 	 * Update the pomodoro event end time
 	 */
-	async updatePomodoroEvent(
-		session: PomodoroSession,
-		calendarId: string
-	): Promise<boolean> {
+	async updatePomodoroEvent(session: PomodoroSession): Promise<boolean> {
 		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
 			return false;
 		}
@@ -233,7 +227,7 @@ END:VCALENDAR`;
 			const endTime = new Date(session.startTime!);
 			endTime.setSeconds(endTime.getSeconds() + (session.duration - session.remaining));
 
-			const event = this.buildPomodoroEvent(session, calendarId);
+			const event = this.buildPomodoroEvent(session);
 			event.id = this.currentEventId;
 			event.end = endTime;
 
@@ -252,13 +246,13 @@ END:VCALENDAR`;
 	/**
 	 * Complete the pomodoro event
 	 */
-	async completePomodoroEvent(session: PomodoroSession, calendarId: string): Promise<boolean> {
+	async completePomodoroEvent(session: PomodoroSession): Promise<boolean> {
 		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
 			return false;
 		}
 
 		try {
-			const event = this.buildPomodoroEvent(session, calendarId);
+			const event = this.buildPomodoroEvent(session);
 			event.id = this.currentEventId;
 			event.end = new Date(); // Set end time to now
 			event.title = `✅ ${event.title}`; // Mark as completed
@@ -311,10 +305,7 @@ END:VCALENDAR`;
 	/**
 	 * Build a calendar event from a pomodoro session
 	 */
-	private buildPomodoroEvent(
-		session: PomodoroSession,
-		calendarId: string
-	): CalendarEvent {
+	private buildPomodoroEvent(session: PomodoroSession): CalendarEvent {
 		const startTime = session.startTime || new Date();
 		const endTime = new Date(startTime);
 		endTime.setSeconds(endTime.getSeconds() + session.duration);
@@ -337,7 +328,7 @@ END:VCALENDAR`;
 			end: endTime,
 			backgroundColor: color,
 			borderColor: color,
-			calendarId
+			calendarId: 'caldav'
 		};
 	}
 

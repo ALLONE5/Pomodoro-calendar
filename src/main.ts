@@ -428,24 +428,19 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		}
 
 		// Create calendar event
-		if (this.settings.enableCalendarIntegration && this.settings.defaultCalendarId) {
-			console.log('Creating calendar event with calendarId:', this.settings.defaultCalendarId);
-			this.calendarIntegration.createPomodoroEvent(
-				session,
-				this.settings.defaultCalendarId
-			).then((eventId) => {
+		if (this.settings.enableCalendarIntegration) {
+			console.log('Creating calendar event...');
+			this.calendarIntegration.createPomodoroEvent(session).then((eventId) => {
 				if (eventId) {
 					console.log('Created calendar event:', eventId);
 				} else {
 					console.log('Failed to create calendar event');
 				}
 			});
-		} else {
-			console.log('Calendar event not created. Integration enabled:', this.settings.enableCalendarIntegration, 'Calendar ID:', this.settings.defaultCalendarId);
 		}
 
 		// Save to data store
-		this.dataStore.saveCurrentSession(session, this.settings.defaultCalendarId);
+		this.dataStore.saveCurrentSession(session, null);
 	}
 
 	/**
@@ -465,15 +460,12 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		new Notice(emoji + " " + message + "!");
 
 		// Create calendar event
-		if (this.settings.enableCalendarIntegration && this.settings.defaultCalendarId) {
-			this.calendarIntegration.createPomodoroEvent(
-				session,
-				this.settings.defaultCalendarId
-			);
+		if (this.settings.enableCalendarIntegration) {
+			this.calendarIntegration.createPomodoroEvent(session);
 		}
 
 		// Save to data store
-		this.dataStore.saveCurrentSession(session, this.settings.defaultCalendarId);
+		this.dataStore.saveCurrentSession(session, null);
 	}
 
 	/**
@@ -492,7 +484,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Save to data store
 		const session = this.pomodoroTimer.getSession();
 		if (session) {
-			this.dataStore.saveCurrentSession(session, this.settings.defaultCalendarId);
+			this.dataStore.saveCurrentSession(session, null);
 		}
 	}
 
@@ -512,7 +504,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Save to data store
 		const session = this.pomodoroTimer.getSession();
 		if (session) {
-			this.dataStore.saveCurrentSession(session, this.settings.defaultCalendarId);
+			this.dataStore.saveCurrentSession(session, null);
 		}
 	}
 
@@ -635,11 +627,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		}
 
 		// Update calendar event
-		if (this.settings.enableCalendarIntegration && this.settings.defaultCalendarId) {
-			this.calendarIntegration.completePomodoroEvent(
-				session,
-				this.settings.defaultCalendarId
-			);
+		if (this.settings.enableCalendarIntegration) {
+			this.calendarIntegration.completePomodoroEvent(session);
 		}
 
 		// Update statistics
@@ -688,11 +677,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Update calendar event every 5 seconds
 		if (this.settings.enableCalendarIntegration && remaining % 5 === 0) {
 			const session = this.pomodoroTimer.getSession();
-			if (session && this.settings.defaultCalendarId) {
-				this.calendarIntegration.updatePomodoroEvent(
-					session,
-					this.settings.defaultCalendarId
-				);
+			if (session) {
+				this.calendarIntegration.updatePomodoroEvent(session);
 			}
 		}
 

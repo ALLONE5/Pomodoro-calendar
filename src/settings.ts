@@ -6,7 +6,6 @@ import { PluginSettingTab, Setting, App } from 'obsidian';
 import { PomodoroSettings } from './pomodoro';
 
 export interface PomodoroCalendarSettings extends PomodoroSettings {
-	defaultCalendarId: string;
 	progressBarStyle: 'coins' | 'leaves' | 'tomatoes' | 'stars' | 'hearts';
 	progressDirection: 'left-to-right' | 'right-to-left';
 	showAnimations: boolean;
@@ -17,7 +16,7 @@ export interface PomodoroCalendarSettings extends PomodoroSettings {
 	caldavUrl: string;
 	caldavUsername: string;
 	caldavPassword: string;
-	caldavCalendarPath: string; // e.g., /calendars/123456/
+	caldavCalendarPath: string;
 }
 
 export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
@@ -27,7 +26,6 @@ export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
 	longBreakInterval: 4,
 	autoStartBreak: false,
 	autoStartPomodoro: false,
-	defaultCalendarId: '',
 	progressBarStyle: 'coins',
 	progressDirection: 'left-to-right',
 	showAnimations: true,
