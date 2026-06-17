@@ -15,7 +15,7 @@ interface AnimationConfig {
 // 使用白色星星角色
 const DEFAULT_CHARACTER = `⭐`;
 const ITEM_SETS = {
-	coins: ['🪙', '💰', '💎'],
+	coins: ['🪙', '💰', '🪙', '💰'],
 	leaves: ['🍃', '🌿', '🌱'],
 	tomatoes: ['🍅', '🥫', '🌶'],
 	stars: ['⭐', '✨', '💫'],
@@ -31,6 +31,7 @@ export class PomodoroAnimatedBar {
 	private isCurrentlyVisible = false;
 	private isDestroyed = false;
 	private characterEl: HTMLElement | null = null;
+	private characterInnerEl: HTMLElement | null = null;
 	private progressTrail: HTMLElement | null = null;
 	private coinTrack: HTMLElement | null = null;
 	private whiteTrack: HTMLElement | null = null;
@@ -119,9 +120,14 @@ export class PomodoroAnimatedBar {
 			cls: 'pomodoro-white-track'
 		});
 
-		// Character element (white star)
-		this.characterEl = this.progressTrail.createEl('div', {
-			cls: 'pomodoro-character',
+		// Character element (white star) - create in bgEl to avoid clipping
+		this.characterEl = bgEl.createEl('div', {
+			cls: 'pomodoro-character'
+		});
+
+		// Inner element that actually moves
+		this.characterInnerEl = this.characterEl.createEl('span', {
+			cls: 'pomodoro-character-inner',
 			text: this.config.character
 		});
 
@@ -153,22 +159,20 @@ export class PomodoroAnimatedBar {
 	private createCoinDecorations(): void {
 		if (!this.coinTrack) return;
 
-		// Create 40 coins for dense effect
-		for (let i = 0; i < 40; i++) {
+		// Create 10 coins spaced evenly along the track
+		for (let i = 0; i < 10; i++) {
 			const coin = this.coinTrack.createEl('span', {
 				cls: 'pomodoro-track-coin'
 			});
 
-			const randomCoin = this.config.items[Math.floor(Math.random() * this.config.items.length)];
-			coin.textContent = randomCoin;
+			// Alternate between coin symbols
+			const coinSymbol = i % 2 === 0 ? '🪙' : '💰';
+			coin.textContent = coinSymbol;
 
-			// Stagger coins in two rows for dense effect
-			const row = i % 2;
-			const basePosition = (Math.floor(i / 2) / 19) * 100;
-			const offset = row === 0 ? -3 : 3;
-
-			coin.style.left = `calc(${basePosition}% + ${offset}px)`;
-			coin.style.top = row === 0 ? '25%' : '75%';
+			// Position along the track
+			const position = (i / 9) * 100;
+			coin.style.left = `${position}%`;
+			coin.style.top = '50%';
 		}
 	}
 
@@ -244,18 +248,14 @@ export class PomodoroAnimatedBar {
 		const percentage = Math.max(0, Math.min(100, progress * 100));
 
 		// Update character position (from left to right)
-		if (this.characterEl) {
-			this.characterEl.style.left = `${percentage}%`;
+		if (this.characterInnerEl) {
+			this.characterInnerEl.style.left = `${percentage}%`;
 
 			// Update star color based on progress (white → gold)
-			// Start: white (255, 255, 255), End: gold (255, 215, 0)
-			const red = 255;
-			const green = Math.round(255 - (40 * percentage / 100));
-			const blue = Math.round(255 - (255 * percentage / 100));
-			const shadowBlur = 4 + (8 * percentage / 100);
-			const shadowOpacity = 0.3 + (0.5 * percentage / 100);
-			this.characterEl.style.color = `rgb(${red}, ${green}, ${blue})`;
-			this.characterEl.style.filter = `drop-shadow(0 0 ${shadowBlur}px rgba(255, 215, 0, ${shadowOpacity}))`;
+			// Note: Emojis don't change color with CSS, so we use text-shadow
+			const goldAmount = percentage / 100;
+			const shadowColor = `rgba(255, ${Math.round(215 - goldAmount * 40)}, ${Math.round(goldAmount * 40)}, ${0.5 + goldAmount * 0.5})`;
+			this.characterInnerEl.style.textShadow = `0 0 ${4 + goldAmount * 8}px ${shadowColor}`;
 		}
 
 		// Update white track width (shows how far the star has run)
@@ -361,8 +361,8 @@ export class PomodoroAnimatedBar {
 	updateConfig(config: Partial<AnimationConfig>): void {
 		if (config.character) {
 			this.config.character = config.character;
-			if (this.characterEl) {
-				this.characterEl.textContent = config.character;
+			if (this.characterInnerEl) {
+				this.characterInnerEl.textContent = config.character;
 			}
 		}
 
@@ -443,8 +443,10 @@ export class PomodoroAnimatedBar {
 		this.coinTrack = null;
 		this.whiteTrack = null;
 		this.characterEl = null;
+		this.characterInnerEl = null;
 		this.timeDisplay = null;
 		this.percentDisplay = null;
+		this.toggleBtn = null;
 		this.containerEl = null;
 	}
 }

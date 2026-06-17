@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/\\\\.pomodoro-animated-bar\\\\.pomodoro-state-running \\\\.pomodoro-character {/\\\\.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-inner {/' src/main.ts)",
+      "Bash(sed -i 's/transform: translateY\\(0\\);/transform: translate\\(-50%, -50%\\) translateY\\(0\\);/' src/main.ts)",
+      "Bash(sed -i 's/transform: translateY\\(-2px\\);/transform: translate\\(-50%, -50%\\) translateY\\(-2px\\);/' src/main.ts)"
+    ]
+  }
+}
