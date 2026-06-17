@@ -152,8 +152,8 @@ export class PomodoroAnimatedBar {
 	private createCoinDecorations(): void {
 		if (!this.coinTrack) return;
 
-		// Create 20 coins along the track
-		for (let i = 0; i < 20; i++) {
+		// Create 40 coins for dense effect
+		for (let i = 0; i < 40; i++) {
 			const coin = this.coinTrack.createEl('span', {
 				cls: 'pomodoro-track-coin'
 			});
@@ -161,8 +161,13 @@ export class PomodoroAnimatedBar {
 			const randomCoin = this.config.items[Math.floor(Math.random() * this.config.items.length)];
 			coin.textContent = randomCoin;
 
-			const position = (i / 19) * 100;
-			coin.style.left = `${position}%`;
+			// Stagger coins in two rows for dense effect
+			const row = i % 2;
+			const basePosition = (Math.floor(i / 2) / 19) * 100;
+			const offset = row === 0 ? -3 : 3;
+
+			coin.style.left = `calc(${basePosition}% + ${offset}px)`;
+			coin.style.top = row === 0 ? '25%' : '75%';
 		}
 	}
 
@@ -240,6 +245,16 @@ export class PomodoroAnimatedBar {
 		// Update character position (from left to right)
 		if (this.characterEl) {
 			this.characterEl.style.left = `${percentage}%`;
+
+			// Update star color based on progress (white → gold)
+			// Start: white (255, 255, 255), End: gold (255, 215, 0)
+			const red = 255;
+			const green = Math.round(255 - (40 * percentage / 100));
+			const blue = Math.round(255 - (255 * percentage / 100));
+			const shadowBlur = 4 + (8 * percentage / 100);
+			const shadowOpacity = 0.3 + (0.5 * percentage / 100);
+			this.characterEl.style.color = `rgb(${red}, ${green}, ${blue})`;
+			this.characterEl.style.filter = `drop-shadow(0 0 ${shadowBlur}px rgba(255, 215, 0, ${shadowOpacity}))`;
 		}
 
 		// Update white track width (shows how far the star has run)
