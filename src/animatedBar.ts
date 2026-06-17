@@ -36,6 +36,7 @@ export class PomodoroAnimatedBar {
 	private whiteTrack: HTMLElement | null = null;
 	private timeDisplay: HTMLElement | null = null;
 	private percentDisplay: HTMLElement | null = null;
+	private toggleBtn: HTMLElement | null = null;
 	private currentProgress = 0;
 	private animationFrame: number | null = null;
 	private config: AnimationConfig;
@@ -71,12 +72,12 @@ export class PomodoroAnimatedBar {
 		});
 
 		// Start/Pause button
-		const toggleBtn = controlsEl.createEl('button', {
+		this.toggleBtn = controlsEl.createEl('button', {
 			cls: 'pomodoro-animated-btn',
 			text: '▶'
 		});
-		toggleBtn.setAttribute('aria-label', '开始/暂停');
-		toggleBtn.addEventListener('click', (e) => {
+		this.toggleBtn.setAttribute('aria-label', '开始/暂停');
+		this.toggleBtn.addEventListener('click', (e) => {
 			e.stopPropagation();
 			this.emitAction('toggle');
 		});
@@ -293,6 +294,17 @@ export class PomodoroAnimatedBar {
 
 		// Add current state class
 		this.containerEl.addClass(`pomodoro-state-${state}`);
+
+		// Update toggle button text based on state
+		if (this.toggleBtn) {
+			if (state === 'running') {
+				this.toggleBtn.textContent = '⏸';
+				this.toggleBtn.setAttribute('aria-label', '暂停');
+			} else {
+				this.toggleBtn.textContent = '▶';
+				this.toggleBtn.setAttribute('aria-label', '开始/继续');
+			}
+		}
 	}
 
 	/**
