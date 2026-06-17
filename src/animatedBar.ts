@@ -106,14 +106,15 @@ export class PomodoroAnimatedBar {
 		});
 
 		// Progress trail (the track the star runs on)
+		// Coin decorations on the track (create in bgEl to avoid clipping)
+			this.coinTrack = bgEl.createEl('div', {
+				cls: 'pomodoro-coin-track'
+			});
+
 		this.progressTrail = bgEl.createEl('div', {
 			cls: 'pomodoro-progress-trail'
 		});
 
-		// Golden coin track (background - golden coins)
-		this.coinTrack = this.progressTrail.createEl('div', {
-			cls: 'pomodoro-coin-track'
-		});
 
 		// White track (foreground - shows progress, turns white)
 		this.whiteTrack = this.progressTrail.createEl('div', {
@@ -251,11 +252,10 @@ export class PomodoroAnimatedBar {
 		if (this.characterInnerEl) {
 			this.characterInnerEl.style.left = `${percentage}%`;
 
-			// Update star color based on progress (white → gold)
-			// Note: Emojis don't change color with CSS, so we use text-shadow
-			const goldAmount = percentage / 100;
-			const shadowColor = `rgba(255, ${Math.round(215 - goldAmount * 40)}, ${Math.round(goldAmount * 40)}, ${0.5 + goldAmount * 0.5})`;
-			this.characterInnerEl.style.textShadow = `0 0 ${4 + goldAmount * 8}px ${shadowColor}`;
+		const goldAmount = percentage / 100;
+			const glowIntensity = 4 + goldAmount * 12;
+			const goldOpacity = 0.3 + goldAmount * 0.7;
+			this.characterInnerEl.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(255, 215, 0, ${goldOpacity}))`;
 		}
 
 		// Update white track width (shows how far the star has run)

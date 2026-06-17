@@ -212,20 +212,211 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	left: 12px;
 	right: 12px;
 	height: 12px;
+	background: linear-gradient(to right, 
+		hsl(0, 70%, 60%), 
+		hsl(60, 70%, 60%), 
+		hsl(120, 70%, 60%), 
+		hsl(180, 70%, 60%), 
+		hsl(240, 70%, 60%), 
+		hsl(300, 70%, 60%)
+	);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+
+.pomodoro-coin-track {
+	position: absolute;
+	bottom: 4px;
+	left: 12px;
+	right: 12px;
+	height: 12px;
+	background: transparent;
+	border-radius: 6px;
+	z-index: 15;
+	pointer-events: none;
+}
+
+.pomodoro-track-coin {
+	position: absolute;
+	font-size: 11px;
+	opacity: 0.8;
+	transform: translate(-50%, -50%);
+	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.pomodoro-track-coin {
+	position: absolute;
+	font-size: 11px;
+	opacity: 0.7;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	z-index: 5;
+	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.pomodoro-white-track {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 0%;
+	background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
+	transition: width 0.3s ease;
+	border-radius: 6px;
+}
+
+.pomodoro-character {
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	bottom: 4px;
+	height: 12px;
+	z-index: 25;
+	pointer-events: none;
+}
+
+.pomodoro-character-inner {
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 18px;
+	transition: left 0.3s ease, filter 0.3s ease;
+	filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
+}
+
+.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-inner {
+	animation: character-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes character-bounce {
+	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+	50% { transform: translate(-50%, -50%) translateY(-2px); }
+}
+
+.pomodoro-progress-text {
+	position: absolute;
+	top: 2px;
+	left: 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-family: var(--font-monospace, monospace);
+}
+
+.pomodoro-time-display {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text-accent, #7ee787);
+}
+
+.pomodoro-percent-display {
+	font-size: 11px;
+	color: var(--text-muted, #999);
+	font-weight: 600;
+}
+
+.pomodoro-celebration-particle {
+	position: absolute;
+	font-size: 14px;
+	animation: particle-fly 1.5s ease forwards;
+	pointer-events: none;
+	z-index: 30;
+}
+
+@keyframes particle-fly {
+	0% { transform: translateY(0) scale(1); opacity: 1; }
+	100% { transform: translateY(-60px) scale(0); opacity: 0; }
+}
+
+.pomodoro-animated-bar.pomodoro-completed {
+	animation: celebrate-bar 0.6s ease;
+}
+
+@keyframes celebrate-bar {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-6px); }
+}
+
+.pomodoro-animated-bar.pomodoro-no-animations * {
+	animation: none !important;
+	transition: none !important;
+}
+
+/* Responsive adjustments for animated bar */
+@media (max-width: 600px) {
+	.pomodoro-animated-bar { bottom: 50px; height: 65px; }
+	.pomodoro-animated-bg { height: 35px; }
+	.pomodoro-progress-trail { bottom: 3px; left: 8px; right: 8px; height: 10px; }
+	.pomodoro-animated-controls { top: 1px; right: 8px; }
+	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 12px; }
+	.pomodoro-character { font-size: 16px; }
+	.pomodoro-track-coin { font-size: 9px; }
+	.pomodoro-time-display { font-size: 14px; }
+	.pomodoro-percent-display { font-size: 10px; }
+}
+
+.pomodoro-animated-bar.pomodoro-visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.pomodoro-animated-bg {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 40px;
+	background: transparent;
+	margin: 0 8px;
+}
+
+.pomodoro-animated-controls {
+	position: absolute;
+	top: 2px;
+	right: 12px;
+	display: flex;
+	gap: 6px;
+	z-index: 10;
+}
+
+.pomodoro-animated-btn {
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: 6px;
+	background: rgba(42, 42, 42, 0.8);
+	color: var(--text-normal, #ddd);
+	font-size: 14px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	backdrop-filter: blur(4px);
+}
+
+.pomodoro-animated-btn:hover {
+	background: rgba(58, 58, 58, 0.9);
+	transform: scale(1.03);
+}
+
+.pomodoro-animated-btn:active {
+	transform: scale(0.97);
+}
+
+.pomodoro-progress-trail {
+	position: absolute;
+	bottom: 4px;
+	left: 12px;
+	right: 12px;
+	height: 12px;
 	background: rgba(0, 0, 0, 0.2);
 	border-radius: 6px;
 	overflow: hidden;
 }
 
-.pomodoro-coin-track {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: linear-gradient(to right, #c9a227, #ffd700, #daa520);
-	border-radius: 6px;
-}
 
 .pomodoro-track-coin {
 	position: absolute;
@@ -418,15 +609,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	overflow: hidden;
 }
 
-.pomodoro-coin-track {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: linear-gradient(to right, #c9a227, #ffd700, #daa520);
-	border-radius: 6px;
-}
 
 .pomodoro-track-coin {
 	position: absolute;
@@ -661,11 +843,10 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-time-display { font-size: 20px; }
 	.pomodoro-percent-display { font-size: 12px; }
 }
-		`;
-
+`;
 		const styleEl = document.createElement('style');
 		styleEl.textContent = cssContent;
-		styleEl.id = `${this.pluginId}-styles`;
+		styleEl.id = `${this.pluginId}-styles}`;
 		document.head.appendChild(styleEl);
 	}
 
@@ -933,7 +1114,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 		const emoji = type === 'shortBreak' ? '☕' : '🌴';
 		const message = type === 'shortBreak' ? '休息一下' : '长休时间';
-		new Notice(`${emoji} ${message}！`);
+		new Notice(emoji + " " + message + "!");
 
 		// Create calendar event
 		if (this.settings.enableCalendarIntegration && this.settings.defaultCalendarId) {
@@ -1062,7 +1243,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		if (this.settings.showNotifications) {
 			const emoji = session.type === 'pomodoro' ? '🍅' :
 			              session.type === 'shortBreak' ? '☕' : '🌴';
-			new Notice(`${emoji} 完成！干得漂亮！`);
+			new Notice(emoji + " 完成!干得漂亮!");
 
 			// Play sound if enabled
 			if (this.settings.notificationSound) {
@@ -1193,4 +1374,4 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 	}
-}
+	}
