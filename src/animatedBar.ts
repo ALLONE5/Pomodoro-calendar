@@ -12,7 +12,8 @@ interface AnimationConfig {
 	backgroundColor: string;
 }
 
-const DEFAULT_CHARACTER = `🏃`;
+// 使用中性角色图标
+const DEFAULT_CHARACTER = `⭐`;
 const ITEM_SETS = {
 	coins: ['🪙', '💰', '💎'],
 	leaves: ['🍃', '🌿', '🌱'],
@@ -32,9 +33,12 @@ export class PomodoroAnimatedBar {
 	private characterEl: HTMLElement | null = null;
 	private progressTrail: HTMLElement | null = null;
 	private itemsContainer: HTMLElement | null = null;
+	private timeDisplay: HTMLElement | null = null;
+	private percentDisplay: HTMLElement | null = null;
 	private currentProgress = 0;
 	private animationFrame: number | null = null;
 	private config: AnimationConfig;
+	private actionCallback: ((action: string) => void) | null = null;
 
 	constructor(app: App, config?: Partial<AnimationConfig>) {
 		this.app = app;
@@ -60,18 +64,66 @@ export class PomodoroAnimatedBar {
 			cls: 'pomodoro-animated-bg'
 		});
 
+		// Control buttons container
+		const controlsEl = bgEl.createEl('div', {
+			cls: 'pomodoro-animated-controls'
+		});
+
+		// Start/Pause button
+		const toggleBtn = controlsEl.createEl('button', {
+			cls: 'pomodoro-animated-btn',
+			text: '▶'
+		});
+		toggleBtn.setAttribute('aria-label', '开始/暂停');
+		toggleBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.emitAction('toggle');
+		});
+
+		// Complete button
+		const completeBtn = controlsEl.createEl('button', {
+			cls: 'pomodoro-animated-btn',
+			text: '✓'
+		});
+		completeBtn.setAttribute('aria-label', '完成');
+		completeBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.emitAction('complete');
+		});
+
+		// Cancel button
+		const cancelBtn = controlsEl.createEl('button', {
+			cls: 'pomodoro-animated-btn',
+			text: '✕'
+		});
+		cancelBtn.setAttribute('aria-label', '取消');
+		cancelBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.emitAction('cancel');
+		});
+
 		// Progress trail (the path the character runs on)
 		this.progressTrail = bgEl.createEl('div', {
 			cls: 'pomodoro-progress-trail'
 		});
 
+		// Progress line (visual track)
+		const progressLine = this.progressTrail.createEl('div', {
+			cls: 'pomodoro-progress-line'
+		});
+
+		// Progress fill (filled portion)
+		const progressFill = progressLine.createEl('div', {
+			cls: 'pomodoro-progress-fill-animated'
+		});
+
 		// Items container (for collectibles)
-		this.itemsContainer = this.progressTrail.createEl('div', {
+		this.itemsContainer = progressLine.createEl('div', {
 			cls: 'pomodoro-items-container'
 		});
 
 		// Character element
-		this.characterEl = this.progressTrail.createEl('div', {
+		this.characterEl = progressLine.createEl('div', {
 			cls: 'pomodoro-character',
 			text: this.config.character
 		});
@@ -81,18 +133,30 @@ export class PomodoroAnimatedBar {
 			cls: 'pomodoro-progress-text'
 		});
 
-		const timeDisplay = progressText.createEl('span', {
+		this.timeDisplay = progressText.createEl('span', {
 			cls: 'pomodoro-time-display',
 			text: '25:00'
 		});
 
-		const percentDisplay = progressText.createEl('span', {
+		this.percentDisplay = progressText.createEl('span', {
 			cls: 'pomodoro-percent-display',
 			text: '0%'
 		});
 
 		// Add to DOM
 		document.body.appendChild(this.containerEl);
+	}
+
+	/**
+	 * Emit action event
+	 */
+	private emitAction(action: string): void {
+		const event = new CustomEvent('pomodoro-action', { detail: action });
+		document.dispatchEvent(event);
+
+		if (this.actionCallback) {
+			this.actionCallback(action);
+		}
 	}
 
 	/**
@@ -140,48 +204,65 @@ export class PomodoroAnimatedBar {
 		if (!this.containerEl || this.isDestroyed) return;
 
 		if (!session) {
-			this.updateDisplay(0, 25 * 60);
+			this.updateDisplay(0, 25 * 60, 'idle');
 			return;
 		}
 
 		const progress = 1 - (session.remaining / session.duration);
-		this.updateDisplay(progress, session.remaining);
+		this.updateDisplay(progress, session.remaining, session.state);
 	}
 
 	/**
 	 * Update the display
 	 */
-	private updateDisplay(progress: number, remaining: number): void {
+	private updateDisplay(progress: number, remaining: number, state: string): void {
 		const percentage = Math.max(0, Math.min(100, progress * 100));
 
-		// Update character position
+		// Update character position (from left to right)
 		if (this.characterEl) {
 			this.characterEl.style.left = `${percentage}%`;
 		}
 
-		// Update progress trail fill
-		if (this.progressTrail) {
-			this.progressTrail.style.setProperty('--progress', `${percentage}%`);
+		// Update progress fill
+		const progressFill = this.containerEl?.querySelector('.pomodoro-progress-fill-animated') as HTMLElement;
+		if (progressFill) {
+			progressFill.style.width = `${percentage}%`;
 		}
 
 		// Update items display
 		this.updateItems(percentage);
 
 		// Update time display
-		const timeDisplay = this.containerEl?.querySelector('.pomodoro-time-display') as HTMLElement;
-		if (timeDisplay) {
+		if (this.timeDisplay) {
 			const mins = Math.floor(remaining / 60);
 			const secs = remaining % 60;
-			timeDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+			this.timeDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 		}
 
 		// Update percentage display
-		const percentDisplay = this.containerEl?.querySelector('.pomodoro-percent-display') as HTMLElement;
-		if (percentDisplay) {
-			percentDisplay.textContent = `${Math.floor(percentage)}%`;
+		if (this.percentDisplay) {
+			this.percentDisplay.textContent = `${Math.floor(percentage)}%`;
 		}
 
+		// Update state classes
+		this.updateStateClasses(state);
+
 		this.currentProgress = percentage;
+	}
+
+	/**
+	 * Update state classes on container
+	 */
+	private updateStateClasses(state: string): void {
+		if (!this.containerEl) return;
+
+		// Remove all state classes
+		this.containerEl.removeClass('pomodoro-state-idle');
+		this.containerEl.removeClass('pomodoro-state-running');
+		this.containerEl.removeClass('pomodoro-state-paused');
+
+		// Add current state class
+		this.containerEl.addClass(`pomodoro-state-${state}`);
 	}
 
 	/**
@@ -211,7 +292,7 @@ export class PomodoroAnimatedBar {
 			const position = (i / totalItems) * 100;
 			itemEl.style.left = `${position}%`;
 
-			// Add animation class if item should be visible
+			// Add animation class if item should be visible (collected)
 			if (i < visibleItems) {
 				itemEl.addClass('pomodoro-item-collected');
 			}
@@ -290,9 +371,7 @@ export class PomodoroAnimatedBar {
 	 * Register action callback (for button clicks)
 	 */
 	onAction(callback: (action: string) => void): void {
-		// For now, this animated bar doesn't have buttons
-		// This is kept for compatibility with the existing code
-		// Actions can be triggered through commands instead
+		this.actionCallback = callback;
 	}
 
 	/**
@@ -344,6 +423,8 @@ export class PomodoroAnimatedBar {
 		this.progressTrail = null;
 		this.itemsContainer = null;
 		this.characterEl = null;
+		this.timeDisplay = null;
+		this.percentDisplay = null;
 		this.containerEl = null;
 	}
 }

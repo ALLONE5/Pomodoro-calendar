@@ -138,20 +138,21 @@ export default class PomodoroCalendarPlugin extends Plugin {
 .pomodoro-floating-btn:hover { background: var(--interactive-hover, #3a3a3a); transform: scale(1.05); }
 .pomodoro-floating-btn:active { transform: scale(0.95); }
 
+
 /* Animated Progress Bar Styles */
 .pomodoro-animated-bar {
 	position: fixed;
 	left: 0;
 	right: 0;
-	bottom: 0;
-	height: 120px;
+	bottom: 60px;
+	height: 140px;
 	background: linear-gradient(to top, var(--background-secondary, #1e1e1e), transparent);
 	display: none;
 	flex-direction: column;
 	justify-content: flex-end;
 	z-index: 1000;
 	opacity: 0;
-	transition: opacity 0.3s ease;
+	transition: opacity 0.3s ease, bottom 0.3s ease;
 	pointer-events: none;
 }
 
@@ -165,113 +166,172 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	bottom: 0;
 	left: 0;
 	right: 0;
-	height: 80px;
+	height: 90px;
 	background: var(--background-secondary, #1e1e1e);
 	border-top: 2px solid var(--background-modifier-border, #333);
+	border-radius: 12px 12px 0 0;
+	margin: 0 10px;
+}
+
+.pomodoro-animated-controls {
+	position: absolute;
+	top: 10px;
+	right: 20px;
+	display: flex;
+	gap: 8px;
+	z-index: 10;
+}
+
+.pomodoro-animated-btn {
+	width: 44px;
+	height: 44px;
+	border: none;
+	border-radius: 10px;
+	background: var(--interactive-normal, #2a2a2a);
+	color: var(--text-normal, #ddd);
+	font-size: 18px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.pomodoro-animated-btn:hover {
+	background: var(--interactive-hover, #3a3a3a);
+	transform: scale(1.08);
+}
+
+.pomodoro-animated-btn:active {
+	transform: scale(0.95);
 }
 
 .pomodoro-progress-trail {
 	position: relative;
+	width: calc(100% - 40px);
+	height: 50px;
+	margin: 35px 20px 10px;
+}
+
+.pomodoro-progress-line {
+	position: relative;
 	width: 100%;
-	height: 60px;
-	margin-top: 10px;
+	height: 8px;
+	background: var(--background-modifier-border, #333);
+	border-radius: 4px;
+	overflow: visible;
+}
+
+.pomodoro-progress-fill-animated {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	background: linear-gradient(to right, #ffd700, #ffed4e);
+	border-radius: 4px;
+	transition: width 0.3s ease;
+	box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .pomodoro-items-container {
 	position: absolute;
-	top: 0;
+	top: -12px;
 	left: 0;
 	right: 0;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 50px;
+	height: 32px;
 }
 
 .pomodoro-item {
 	position: absolute;
-	font-size: 24px;
-	opacity: 0.3;
+	font-size: 20px;
+	opacity: 0.25;
 	transition: all 0.3s ease;
-	transform: scale(0.8);
+	transform: scale(0.7);
+	filter: grayscale(50%);
 }
 
 .pomodoro-item.pomodoro-item-collected {
 	opacity: 1;
-	transform: scale(1.2);
-	animation: item-collect 0.5s ease;
+	transform: scale(1.1);
+	animation: item-collect 0.4s ease;
+	filter: grayscale(0%);
 }
 
 @keyframes item-collect {
-	0% { transform: scale(0.8); opacity: 0.3; }
-	50% { transform: scale(1.4); opacity: 1; }
-	100% { transform: scale(1.2); opacity: 1; }
+	0% { transform: scale(0.7) rotate(0deg); opacity: 0.25; }
+	50% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+	100% { transform: scale(1.1) rotate(0deg); opacity: 1; }
 }
 
 .pomodoro-character {
 	position: absolute;
-	font-size: 32px;
+	font-size: 28px;
 	left: 0%;
-	top: 50%;
-	transform: translateY(-50%);
+	top: -8px;
+	transform: translateX(-50%);
 	transition: left 0.3s ease;
 	z-index: 10;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	filter: drop-shadow(0 2px 6px rgba(255, 215, 0, 0.6));
 }
 
 .pomodoro-animated-bar.pomodoro-state-running .pomodoro-character {
-	animation: character-run 0.5s ease infinite;
+	animation: character-run 0.6s ease-in-out infinite;
 }
 
 @keyframes character-run {
-	0%, 100% { transform: translateY(-50%) rotate(0deg); }
-	25% { transform: translateY(-55%) rotate(5deg); }
-	75% { transform: translateY(-45%) rotate(-5deg); }
+	0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+	50% { transform: translateX(-50%) translateY(-4px) rotate(5deg); }
 }
 
 .pomodoro-progress-text {
 	position: absolute;
-	top: 10px;
+	bottom: 8px;
 	left: 0;
 	right: 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 20px;
+	gap: 16px;
 	font-family: var(--font-monospace, monospace);
 }
 
 .pomodoro-time-display {
-	font-size: 28px;
+	font-size: 24px;
 	font-weight: 700;
 	color: var(--text-accent, #7ee787);
+	text-shadow: 0 0 10px rgba(126, 231, 135, 0.3);
 }
 
 .pomodoro-percent-display {
-	font-size: 16px;
+	font-size: 14px;
 	color: var(--text-muted, #999);
+	font-weight: 600;
 }
 
 .pomodoro-celebration-particle {
 	position: absolute;
-	font-size: 20px;
+	font-size: 24px;
 	animation: particle-fly 2s ease forwards;
 	pointer-events: none;
+	z-index: 20;
 }
 
 @keyframes particle-fly {
-	0% { transform: translateY(0) scale(1); opacity: 1; }
-	100% { transform: translateY(-100px) scale(0); opacity: 0; }
+	0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+	100% { transform: translateY(-120px) scale(0) rotate(360deg); opacity: 0; }
 }
 
 .pomodoro-animated-bar.pomodoro-completed {
-	animation: celebrate-bar 0.6s ease;
+	animation: celebrate-bar 0.8s ease;
 }
 
 @keyframes celebrate-bar {
 	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(-10px); }
+	25% { transform: translateY(-8px); }
+	50% { transform: translateY(-12px); }
+	75% { transform: translateY(-8px); }
 }
 
 .pomodoro-animated-bar.pomodoro-no-animations * {
@@ -281,11 +341,13 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 /* Responsive adjustments for animated bar */
 @media (max-width: 600px) {
-	.pomodoro-animated-bar { height: 100px; }
-	.pomodoro-animated-bg { height: 60px; }
-	.pomodoro-progress-trail { height: 40px; }
-	.pomodoro-character { font-size: 24px; }
-	.pomodoro-item { font-size: 18px; }
+	.pomodoro-animated-bar { bottom: 50px; height: 120px; }
+	.pomodoro-animated-bg { height: 70px; margin: 0 5px; }
+	.pomodoro-progress-trail { height: 40px; margin: 30px 10px 8px; }
+	.pomodoro-animated-controls { top: 8px; right: 10px; }
+	.pomodoro-animated-btn { width: 38px; height: 38px; font-size: 16px; }
+	.pomodoro-character { font-size: 24px; top: -6px; }
+	.pomodoro-item { font-size: 16px; }
 	.pomodoro-time-display { font-size: 20px; }
 	.pomodoro-percent-display { font-size: 12px; }
 }
