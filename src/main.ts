@@ -140,7 +140,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-white-track { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: color-mix(in srgb, var(--interactive-accent) 80%, transparent); transition: width 0.3s ease; border-radius: 6px; }
 	.pomodoro-direction-rtl .pomodoro-white-track { left: auto; right: 0; }
 	.pomodoro-coin-track { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: transparent; border-radius: 6px; z-index: 7; pointer-events: none; }
-	.pomodoro-track-coin { position: absolute; font-size: 13px; opacity: 0.8; color: var(--text-normal, #ddd); text-shadow: 0 0 3px rgba(0, 0, 0, 0.95); transform: translate(-50%, -50%); pointer-events: none; }
+	.pomodoro-track-coin { position: absolute; font-size: 13px; opacity: 0.8; color: var(--text-normal, #ddd); transform: translate(-50%, -50%); pointer-events: none; }
 	.pomodoro-character { position: absolute; bottom: 4px; left: 0; right: 0; height: 20px; z-index: 25; pointer-events: none; }
 	.pomodoro-character-white { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)); transition: left 0.3s ease; }
 	.pomodoro-character-gold { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #ffd700; opacity: 0; transition: left 0.3s ease, opacity 0.3s ease; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
