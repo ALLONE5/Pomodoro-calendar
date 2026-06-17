@@ -1,0 +1,11 @@
+{
+  "id": "pomodoro-calendar",
+  "name": "Pomodoro Calendar",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "A Pomodoro timer with Full Calendar Remastered integration and multi-device sync support",
+  "author": "Your Name",
+  "authorUrl": "https://github.com/yourusername",
+  "fundingUrl": "https://github.com/yourusername/pomodoro-calendar",
+  "isDesktopOnly": false
+}
