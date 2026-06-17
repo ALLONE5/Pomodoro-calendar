@@ -105,16 +105,15 @@ export class PomodoroAnimatedBar {
 			this.emitAction('cancel');
 		});
 
-		// Progress trail (the track the star runs on)
 		// Coin decorations on the track (create in bgEl to avoid clipping)
-			this.coinTrack = bgEl.createEl('div', {
-				cls: 'pomodoro-coin-track'
-			});
+		this.coinTrack = bgEl.createEl('div', {
+			cls: 'pomodoro-coin-track'
+		});
 
+		// Progress trail (the track the star runs on)
 		this.progressTrail = bgEl.createEl('div', {
 			cls: 'pomodoro-progress-trail'
 		});
-
 
 		// White track (foreground - shows progress, turns white)
 		this.whiteTrack = this.progressTrail.createEl('div', {
@@ -252,7 +251,8 @@ export class PomodoroAnimatedBar {
 		if (this.characterInnerEl) {
 			this.characterInnerEl.style.left = `${percentage}%`;
 
-		const goldAmount = percentage / 100;
+			// Update star glow based on progress (white → golden glow)
+			const goldAmount = percentage / 100;
 			const glowIntensity = 4 + goldAmount * 12;
 			const goldOpacity = 0.3 + goldAmount * 0.7;
 			this.characterInnerEl.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(255, 215, 0, ${goldOpacity}))`;
