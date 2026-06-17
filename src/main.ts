@@ -251,42 +251,9 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 
 
-.pomodoro-character {
-	position: absolute;
-	left: 12px;
-	right: 12px;
-	bottom: 4px;
-	height: 12px;
-	z-index: 25;
-	pointer-events: none;
-	transition: left 0.3s ease;
-}
 
-.pomodoro-character-white {
-	position: absolute;
-	top: 50%;
-	left: 0;
-	transform: translate(-50%, -50%);
-	font-size: 24px;
-	color: #ffffff;
-	filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
-}
 
-.pomodoro-character-gold {
-	position: absolute;
-	top: 50%;
-	left: 0;
-	transform: translate(-50%, -50%);
-	font-size: 24px;
-	color: #ffd700;
-	opacity: 1;
-	transition: opacity 0.3s ease;
-	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
-}
 
-.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character {
-	animation: character-bounce 0.5s ease-in-out infinite;
-}
 
 @keyframes character-bounce {
 	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
@@ -308,6 +275,48 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	transition: width 0.3s ease;
 	border-radius: 6px;
 	box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.pomodoro-character {
+	position: absolute;
+	bottom: 4px;
+	left: 12px;
+	height: 12px;
+	width: calc(100% - 24px);
+	z-index: 25;
+	pointer-events: none;
+	transition: none;
+}
+
+.pomodoro-character-white {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	transform: translate(-50%, -50%);
+	font-size: 24px;
+	color: #ffffff;
+	filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+}
+
+.pomodoro-character-gold {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	transform: translate(-50%, -50%);
+	font-size: 24px;
+	color: #ffd700;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
+}
+
+.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character {
+	animation: character-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes character-bounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-2px); }
 }
 
 
