@@ -5,7 +5,7 @@
 
 import { Plugin, Notice, addIcon } from 'obsidian';
 import { PomodoroTimer, PomodoroSession, PomodoroType } from './pomodoro';
-import { PomodoroFloatingBar } from './floatingBar';
+import { PomodoroAnimatedBar } from './animatedBar';
 import { PomodoroSettingsTab, PomodoroCalendarSettings, DEFAULT_SETTINGS } from './settings';
 import { CalendarIntegration } from './calendarIntegration';
 import { PomodoroDataStore, StoredData } from './dataStore';
@@ -23,7 +23,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	calendarIntegration!: CalendarIntegration;
 	pomodoroTimer!: PomodoroTimer;
 	ribbonIcon!: HTMLElement;
-	floatingBar: PomodoroFloatingBar | null = null;
+	animatedBar: PomodoroAnimatedBar | null = null;
 	pluginId = 'pomodoro-calendar';
 
 	async onload() {
@@ -60,10 +60,10 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		this.createRibbonIcon();
 
 		// Create floating progress bar
-		this.floatingBar = new PomodoroFloatingBar(this.app);
+		this.animatedBar = new PomodoroAnimatedBar(this.app);
 
 		// Register floating bar action callbacks
-		this.floatingBar.onAction((action) => {
+		this.animatedBar.onAction((action) => {
 			this.handleFloatingBarAction(action);
 		});
 
@@ -94,7 +94,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		console.log('Unloading Pomodoro Calendar Plugin');
 
 		// Clean up
-		this.floatingBar?.destroy();
+		this.animatedBar?.destroy();
 		this.pomodoroTimer?.destroy();
 		this.calendarIntegration?.destroy();
 		this.dataStore?.destroy();
@@ -137,6 +137,158 @@ export default class PomodoroCalendarPlugin extends Plugin {
 .pomodoro-floating-btn { width: 40px; height: 40px; border: none; border-radius: 8px; background: var(--interactive-normal, #2a2a2a); color: var(--text-normal, #ddd); font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 .pomodoro-floating-btn:hover { background: var(--interactive-hover, #3a3a3a); transform: scale(1.05); }
 .pomodoro-floating-btn:active { transform: scale(0.95); }
+
+/* Animated Progress Bar Styles */
+.pomodoro-animated-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 120px;
+	background: linear-gradient(to top, var(--background-secondary, #1e1e1e), transparent);
+	display: none;
+	flex-direction: column;
+	justify-content: flex-end;
+	z-index: 1000;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+}
+
+.pomodoro-animated-bar.pomodoro-visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.pomodoro-animated-bg {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 80px;
+	background: var(--background-secondary, #1e1e1e);
+	border-top: 2px solid var(--background-modifier-border, #333);
+}
+
+.pomodoro-progress-trail {
+	position: relative;
+	width: 100%;
+	height: 60px;
+	margin-top: 10px;
+}
+
+.pomodoro-items-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 50px;
+}
+
+.pomodoro-item {
+	position: absolute;
+	font-size: 24px;
+	opacity: 0.3;
+	transition: all 0.3s ease;
+	transform: scale(0.8);
+}
+
+.pomodoro-item.pomodoro-item-collected {
+	opacity: 1;
+	transform: scale(1.2);
+	animation: item-collect 0.5s ease;
+}
+
+@keyframes item-collect {
+	0% { transform: scale(0.8); opacity: 0.3; }
+	50% { transform: scale(1.4); opacity: 1; }
+	100% { transform: scale(1.2); opacity: 1; }
+}
+
+.pomodoro-character {
+	position: absolute;
+	font-size: 32px;
+	left: 0%;
+	top: 50%;
+	transform: translateY(-50%);
+	transition: left 0.3s ease;
+	z-index: 10;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character {
+	animation: character-run 0.5s ease infinite;
+}
+
+@keyframes character-run {
+	0%, 100% { transform: translateY(-50%) rotate(0deg); }
+	25% { transform: translateY(-55%) rotate(5deg); }
+	75% { transform: translateY(-45%) rotate(-5deg); }
+}
+
+.pomodoro-progress-text {
+	position: absolute;
+	top: 10px;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	font-family: var(--font-monospace, monospace);
+}
+
+.pomodoro-time-display {
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--text-accent, #7ee787);
+}
+
+.pomodoro-percent-display {
+	font-size: 16px;
+	color: var(--text-muted, #999);
+}
+
+.pomodoro-celebration-particle {
+	position: absolute;
+	font-size: 20px;
+	animation: particle-fly 2s ease forwards;
+	pointer-events: none;
+}
+
+@keyframes particle-fly {
+	0% { transform: translateY(0) scale(1); opacity: 1; }
+	100% { transform: translateY(-100px) scale(0); opacity: 0; }
+}
+
+.pomodoro-animated-bar.pomodoro-completed {
+	animation: celebrate-bar 0.6s ease;
+}
+
+@keyframes celebrate-bar {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-10px); }
+}
+
+.pomodoro-animated-bar.pomodoro-no-animations * {
+	animation: none !important;
+	transition: none !important;
+}
+
+/* Responsive adjustments for animated bar */
+@media (max-width: 600px) {
+	.pomodoro-animated-bar { height: 100px; }
+	.pomodoro-animated-bg { height: 60px; }
+	.pomodoro-progress-trail { height: 40px; }
+	.pomodoro-character { font-size: 24px; }
+	.pomodoro-item { font-size: 18px; }
+	.pomodoro-time-display { font-size: 20px; }
+	.pomodoro-percent-display { font-size: 12px; }
+}
 		`;
 
 		const styleEl = document.createElement('style');
@@ -194,19 +346,19 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 */
 	private toggleFloatingBar(): void {
 		console.log('Toggle floating bar clicked');
-		if (!this.floatingBar) {
+		if (!this.animatedBar) {
 			console.error('Floating bar not initialized!');
 			return;
 		}
 
-		if (this.floatingBar.getVisibility()) {
+		if (this.animatedBar.getVisibility()) {
 			console.log('Hiding floating bar');
-			this.floatingBar.hide();
+			this.animatedBar.hide();
 		} else {
 			console.log('Showing floating bar');
-			this.floatingBar.show();
+			this.animatedBar.show();
 			// Update the floating bar with current session
-			this.floatingBar.update(this.pomodoroTimer.getSession());
+			this.animatedBar.update(this.pomodoroTimer.getSession());
 		}
 	}
 
@@ -346,8 +498,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 				session.id = storedSession.id;
 
 				// Show floating bar
-				this.floatingBar?.show();
-				this.floatingBar?.update(session);
+				this.animatedBar?.show();
+				this.animatedBar?.update(session);
 
 				// Update calendar if event exists
 				if (storedSession.eventId && storedSession.calendarId) {
@@ -370,8 +522,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		const session = this.pomodoroTimer.start('pomodoro');
 
 		// Show and update floating bar
-		this.floatingBar?.show();
-		this.floatingBar?.update(session);
+		this.animatedBar?.show();
+		this.animatedBar?.update(session);
 
 		this.updateRibbonIcon();
 
@@ -402,8 +554,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		const session = this.pomodoroTimer.start(type);
 
 		// Show and update floating bar
-		this.floatingBar?.show();
-		this.floatingBar?.update(session);
+		this.animatedBar?.show();
+		this.animatedBar?.update(session);
 
 		this.updateRibbonIcon();
 
@@ -429,7 +581,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	pausePomodoro(): void {
 		this.pomodoroTimer.pause();
 
-		this.floatingBar?.update(this.pomodoroTimer.getSession());
+		this.animatedBar?.update(this.pomodoroTimer.getSession());
 		this.updateRibbonIcon();
 
 		if (this.settings.showNotifications) {
@@ -449,7 +601,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	resumePomodoro(): void {
 		this.pomodoroTimer.resume();
 
-		this.floatingBar?.update(this.pomodoroTimer.getSession());
+		this.animatedBar?.update(this.pomodoroTimer.getSession());
 		this.updateRibbonIcon();
 
 		if (this.settings.showNotifications) {
@@ -496,7 +648,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	cancelPomodoro(): void {
 		this.pomodoroTimer.cancel();
 
-		this.floatingBar?.hide();
+		this.animatedBar?.hide();
 		this.updateRibbonIcon();
 
 		if (this.settings.showNotifications) {
@@ -531,8 +683,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		console.log('Pomodoro completed:', session);
 
 		// Update floating bar with completed session
-		this.floatingBar?.update(session);
-		this.floatingBar?.showCompletionAnimation();
+		this.animatedBar?.update(session);
+		this.animatedBar?.showCompletionAnimation();
 		this.updateRibbonIcon();
 
 		if (this.settings.showNotifications) {
@@ -566,7 +718,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		setTimeout(() => {
 			const currentSession = this.pomodoroTimer.getSession();
 			if (!currentSession) {
-				this.floatingBar?.hide();
+				this.animatedBar?.hide();
 			}
 		}, 3000);
 
@@ -584,7 +736,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 	private onPomodoroTick(remaining: number, total: number): void {
 		// Update floating bar
-		this.floatingBar?.update(this.pomodoroTimer.getSession());
+		this.animatedBar?.update(this.pomodoroTimer.getSession());
 
 		// Update calendar event every 5 seconds
 		if (this.settings.enableCalendarIntegration && remaining % 5 === 0) {
@@ -624,14 +776,14 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 */
 	updateStatusBarStyle(): void {
 		// Update floating bar style
-		this.floatingBar?.updateStyle(this.settings.progressBarStyle, this.settings.solidColor);
+		this.animatedBar?.updateStyle(this.settings.progressBarStyle, this.settings.solidColor);
 	}
 
 	/**
 	 * Update animation state (called from settings)
 	 */
 	updateAnimationState(): void {
-		this.floatingBar?.setAnimationsEnabled(this.settings.showAnimations);
+		this.animatedBar?.setAnimationsEnabled(this.settings.showAnimations);
 	}
 
 	/**

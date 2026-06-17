@@ -287,6 +287,46 @@ export class PomodoroAnimatedBar {
 	}
 
 	/**
+	 * Register action callback (for button clicks)
+	 */
+	onAction(callback: (action: string) => void): void {
+		// For now, this animated bar doesn't have buttons
+		// This is kept for compatibility with the existing code
+		// Actions can be triggered through commands instead
+	}
+
+	/**
+	 * Update style (for compatibility)
+	 */
+	updateStyle(style: string, color: string): void {
+		// Update the items based on style selection
+		if (style === 'coins') {
+			this.config.items = ITEM_SETS.coins;
+		} else if (style === 'leaves') {
+			this.config.items = ITEM_SETS.leaves;
+		} else if (style === 'tomatoes') {
+			this.config.items = ITEM_SETS.tomatoes;
+		} else if (style === 'stars') {
+			this.config.items = ITEM_SETS.stars;
+		} else if (style === 'hearts') {
+			this.config.items = ITEM_SETS.hearts;
+		}
+	}
+
+	/**
+	 * Set animations enabled
+	 */
+	setAnimationsEnabled(enabled: boolean): void {
+		if (!this.containerEl) return;
+
+		if (enabled) {
+			this.containerEl.removeClass('pomodoro-no-animations');
+		} else {
+			this.containerEl.addClass('pomodoro-no-animations');
+		}
+	}
+
+	/**
 	 * Clean up resources
 	 */
 	destroy(): void {
