@@ -137,7 +137,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-animated-btn:hover { background: rgba(58, 58, 58, 0.9); transform: scale(1.03); }
 	.pomodoro-animated-btn:active { transform: scale(0.97); }
 	.pomodoro-progress-trail { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: var(--interactive-accent, #7ee787); opacity: 0.1; border-radius: 6px; overflow: hidden; z-index: 6; }
-	.pomodoro-white-track { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--interactive-accent, #7ee787); opacity: 0.85; transition: width 0.3s ease; border-radius: 6px; }
+	.pomodoro-white-track { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--interactive-accent, #7ee787); opacity: 1; transition: width 0.3s ease; border-radius: 6px; }
 	.pomodoro-direction-rtl .pomodoro-white-track { left: auto; right: 0; }
 	.pomodoro-coin-track { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: transparent; border-radius: 6px; z-index: 5; pointer-events: none; }
 	.pomodoro-track-coin { position: absolute; font-size: 13px; opacity: 0.8; color: var(--text-normal, #ddd); text-shadow: 0 0 3px rgba(0, 0, 0, 0.95); transform: translate(-50%, -50%); pointer-events: none; }
