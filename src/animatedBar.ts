@@ -12,7 +12,7 @@ interface AnimationConfig {
 	backgroundColor: string;
 }
 
-// 使用中性角色图标
+// 使用白色星星角色
 const DEFAULT_CHARACTER = `⭐`;
 const ITEM_SETS = {
 	coins: ['🪙', '💰', '💎'],
@@ -32,7 +32,8 @@ export class PomodoroAnimatedBar {
 	private isDestroyed = false;
 	private characterEl: HTMLElement | null = null;
 	private progressTrail: HTMLElement | null = null;
-	private itemsContainer: HTMLElement | null = null;
+	private coinTrack: HTMLElement | null = null;
+	private whiteTrack: HTMLElement | null = null;
 	private timeDisplay: HTMLElement | null = null;
 	private percentDisplay: HTMLElement | null = null;
 	private currentProgress = 0;
@@ -102,28 +103,23 @@ export class PomodoroAnimatedBar {
 			this.emitAction('cancel');
 		});
 
-		// Progress trail (the path the character runs on)
+		// Progress trail (the track the star runs on)
 		this.progressTrail = bgEl.createEl('div', {
 			cls: 'pomodoro-progress-trail'
 		});
 
-		// Progress line (visual track)
-		const progressLine = this.progressTrail.createEl('div', {
-			cls: 'pomodoro-progress-line'
+		// Golden coin track (background - golden coins)
+		this.coinTrack = this.progressTrail.createEl('div', {
+			cls: 'pomodoro-coin-track'
 		});
 
-		// Progress fill (filled portion)
-		const progressFill = progressLine.createEl('div', {
-			cls: 'pomodoro-progress-fill-animated'
+		// White track (foreground - shows progress, turns white)
+		this.whiteTrack = this.progressTrail.createEl('div', {
+			cls: 'pomodoro-white-track'
 		});
 
-		// Items container (for collectibles)
-		this.itemsContainer = progressLine.createEl('div', {
-			cls: 'pomodoro-items-container'
-		});
-
-		// Character element
-		this.characterEl = progressLine.createEl('div', {
+		// Character element (white star)
+		this.characterEl = this.progressTrail.createEl('div', {
 			cls: 'pomodoro-character',
 			text: this.config.character
 		});
@@ -145,6 +141,29 @@ export class PomodoroAnimatedBar {
 
 		// Add to DOM
 		document.body.appendChild(this.containerEl);
+
+		// Create coin decorations on the track
+		this.createCoinDecorations();
+	}
+
+	/**
+	 * Create golden coin decorations along the track
+	 */
+	private createCoinDecorations(): void {
+		if (!this.coinTrack) return;
+
+		// Create 20 coins along the track
+		for (let i = 0; i < 20; i++) {
+			const coin = this.coinTrack.createEl('span', {
+				cls: 'pomodoro-track-coin'
+			});
+
+			const randomCoin = this.config.items[Math.floor(Math.random() * this.config.items.length)];
+			coin.textContent = randomCoin;
+
+			const position = (i / 19) * 100;
+			coin.style.left = `${position}%`;
+		}
 	}
 
 	/**
@@ -223,14 +242,10 @@ export class PomodoroAnimatedBar {
 			this.characterEl.style.left = `${percentage}%`;
 		}
 
-		// Update progress fill
-		const progressFill = this.containerEl?.querySelector('.pomodoro-progress-fill-animated') as HTMLElement;
-		if (progressFill) {
-			progressFill.style.width = `${percentage}%`;
+		// Update white track width (shows how far the star has run)
+		if (this.whiteTrack) {
+			this.whiteTrack.style.width = `${percentage}%`;
 		}
-
-		// Update items display
-		this.updateItems(percentage);
 
 		// Update time display
 		if (this.timeDisplay) {
@@ -266,40 +281,6 @@ export class PomodoroAnimatedBar {
 	}
 
 	/**
-	 * Update collectible items along the path
-	 */
-	private updateItems(percentage: number): void {
-		if (!this.itemsContainer) return;
-
-		// Calculate how many items to show based on progress
-		const totalItems = 10;
-		const visibleItems = Math.floor((percentage / 100) * totalItems);
-
-		// Clear existing items
-		this.itemsContainer.innerHTML = '';
-
-		// Add items along the path
-		for (let i = 0; i < totalItems; i++) {
-			const itemEl = this.itemsContainer.createEl('span', {
-				cls: 'pomodoro-item'
-			});
-
-			// Random item from the set
-			const randomItem = this.config.items[Math.floor(Math.random() * this.config.items.length)];
-			itemEl.textContent = randomItem;
-
-			// Position along the path
-			const position = (i / totalItems) * 100;
-			itemEl.style.left = `${position}%`;
-
-			// Add animation class if item should be visible (collected)
-			if (i < visibleItems) {
-				itemEl.addClass('pomodoro-item-collected');
-			}
-		}
-	}
-
-	/**
 	 * Show completion animation
 	 */
 	showCompletionAnimation(): void {
@@ -319,14 +300,14 @@ export class PomodoroAnimatedBar {
 	 * Celebration animation
 	 */
 	private celebrate(): void {
-		if (!this.itemsContainer) return;
+		if (!this.progressTrail) return;
 
 		// Create celebration particles
 		for (let i = 0; i < 20; i++) {
 			setTimeout(() => {
-				if (!this.itemsContainer) return;
+				if (!this.progressTrail) return;
 
-				const particle = this.itemsContainer.createEl('span', {
+				const particle = this.progressTrail.createEl('span', {
 					cls: 'pomodoro-celebration-particle'
 				});
 
@@ -360,6 +341,11 @@ export class PomodoroAnimatedBar {
 
 		if (config.items) {
 			this.config.items = config.items;
+			// Recreate coin decorations
+			if (this.coinTrack) {
+				this.coinTrack.innerHTML = '';
+				this.createCoinDecorations();
+			}
 		}
 
 		if (config.backgroundColor) {
@@ -389,6 +375,12 @@ export class PomodoroAnimatedBar {
 			this.config.items = ITEM_SETS.stars;
 		} else if (style === 'hearts') {
 			this.config.items = ITEM_SETS.hearts;
+		}
+
+		// Recreate coin decorations
+		if (this.coinTrack) {
+			this.coinTrack.innerHTML = '';
+			this.createCoinDecorations();
 		}
 	}
 
@@ -421,7 +413,8 @@ export class PomodoroAnimatedBar {
 		}
 
 		this.progressTrail = null;
-		this.itemsContainer = null;
+		this.coinTrack = null;
+		this.whiteTrack = null;
 		this.characterEl = null;
 		this.timeDisplay = null;
 		this.percentDisplay = null;
