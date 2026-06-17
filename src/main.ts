@@ -67,6 +67,11 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			this.handleFloatingBarAction(action);
 		});
 
+		// Apply settings to animated bar
+		this.animatedBar?.updateStyle(this.settings.progressBarStyle);
+		this.animatedBar?.updateDirection(this.settings.progressDirection || 'left-to-right');
+		this.animatedBar?.setAnimationsEnabled(this.settings.showAnimations);
+
 		// Register settings tab
 		this.addSettingTab(new PomodoroSettingsTab(this.app, this));
 
@@ -109,734 +114,68 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 * Load plugin CSS styles
 	 */
 	private loadPluginStyles(): void {
-		// Inject CSS directly since the file path might not work
 		const cssContent = `
-/* Pomodoro Calendar Plugin Styles */
-.pomodoro-ribbon-icon { position: relative; color: var(--text-muted, #888) !important; }
-.pomodoro-ribbon-icon svg { width: 20px; height: 20px; stroke: currentColor; }
-.pomodoro-ribbon-icon:hover { color: var(--text-normal, #ddd) !important; }
-.pomodoro-ribbon-icon.pomodoro-idle { opacity: 0.8; }
-.pomodoro-ribbon-icon.pomodoro-running { opacity: 1; color: var(--text-accent, #7ee787) !important; animation: pulse-icon 1.5s ease-in-out infinite; }
-.pomodoro-ribbon-icon.pomodoro-paused { opacity: 0.5; color: var(--text-muted, #666) !important; }
-@keyframes pulse-icon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
-
-.pomodoro-floating-bar { position: fixed; left: 0; right: 0; bottom: -90px; height: 60px; background: var(--background-secondary, #1e1e1e); border-top: 2px solid var(--background-modifier-border, #333); display: flex; flex-direction: column; z-index: 1000; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3); }
-.pomodoro-floating-bar.pomodoro-visible { bottom: 30px; }
-.pomodoro-floating-content { display: flex; align-items: center; gap: 16px; padding: 12px 20px; flex: 1; }
-.pomodoro-floating-progress { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: transparent; overflow: hidden; }
-.pomodoro-rainbow-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, hsl(0, 70%, 60%), hsl(60, 70%, 60%), hsl(120, 70%, 60%), hsl(180, 70%, 60%), hsl(240, 70%, 60%), hsl(300, 70%, 60%)); animation: rainbow-shift 3s linear infinite; }
-@keyframes rainbow-shift { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-.pomodoro-progress-fill { position: absolute; top: 0; left: 0; height: 100%; background: rgba(0, 0, 0, 0.4); transition: width 0.3s ease; }
-.pomodoro-floating-icon { font-size: 20px; display: inline-flex; align-items: center; justify-content: center; }
-.pomodoro-floating-bar.pomodoro-state-running .pomodoro-floating-icon { animation: bounce 0.5s ease infinite; }
-@keyframes bounce { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translateY(-3px); } }
-.pomodoro-floating-timer { font-size: 24px; font-family: var(--font-monospace, monospace); font-weight: 700; min-width: 70px; text-align: center; color: var(--text-normal, #ddd); }
-.pomodoro-floating-bar.pomodoro-state-running .pomodoro-floating-timer { color: var(--text-accent, #7ee787); }
-.pomodoro-floating-label { font-size: 14px; color: var(--text-muted, #999); }
-.pomodoro-floating-controls { display: flex; gap: 8px; margin-left: auto; }
-.pomodoro-floating-btn { width: 40px; height: 40px; border: none; border-radius: 8px; background: var(--interactive-normal, #2a2a2a); color: var(--text-normal, #ddd); font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
-.pomodoro-floating-btn:hover { background: var(--interactive-hover, #3a3a3a); transform: scale(1.05); }
-.pomodoro-floating-btn:active { transform: scale(0.95); }
-
-
-/* Animated Progress Bar Styles */
-.pomodoro-animated-bar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 60px;
-	height: 70px;
-	background: transparent;
-	display: none;
-	flex-direction: column;
-	justify-content: flex-end;
-	z-index: 1000;
-	opacity: 1;
-	transition: opacity 0.3s ease;
-	pointer-events: none;
-}
-
-.pomodoro-animated-bar.pomodoro-visible {
-	opacity: 1;
-	pointer-events: auto;
-}
-
-.pomodoro-animated-bg {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 40px;
-	background: transparent;
-	margin: 0 8px;
-}
-
-.pomodoro-animated-controls {
-	position: absolute;
-	top: 2px;
-	right: 12px;
-	display: flex;
-	gap: 6px;
-	z-index: 10;
-}
-
-.pomodoro-animated-btn {
-	width: 32px;
-	height: 32px;
-	border: none;
-	border-radius: 6px;
-	background: rgba(42, 42, 42, 0.8);
-	color: var(--text-normal, #ddd);
-	font-size: 14px;
-	font-weight: bold;
-	cursor: pointer;
-	transition: all 0.15s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(4px);
-}
-
-.pomodoro-animated-btn:hover {
-	background: rgba(58, 58, 58, 0.9);
-	transform: scale(1.03);
-}
-
-.pomodoro-animated-btn:active {
-	transform: scale(0.97);
-}
-
-.pomodoro-progress-trail {
-	position: absolute;
-	bottom: 4px;
-	left: 12px;
-	right: 12px;
-	height: 12px;
-	background: linear-gradient(to right, 
-		hsl(0, 70%, 60%), 
-		hsl(60, 70%, 60%), 
-		hsl(120, 70%, 60%), 
-		hsl(180, 70%, 60%), 
-		hsl(240, 70%, 60%), 
-		hsl(300, 70%, 60%)
-	);
-	border-radius: 6px;
-	overflow: hidden;
-}
-
-
-.pomodoro-coin-track {
-	position: absolute;
-	bottom: 4px;
-	left: 12px;
-	right: 12px;
-	height: 12px;
-	background: transparent;
-	border-radius: 6px;
-	z-index: 15;
-	pointer-events: none;
-}
-
-.pomodoro-track-coin {
-	position: absolute;
-	font-size: 11px;
-	opacity: 0.8;
-	transform: translate(-50%, -50%);
-	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
-}
-
-
-
-
-
-
-
-
-
-
-
-
-.pomodoro-character {
-	position: absolute;
-	bottom: 4px;
-	left: 0;
-	right: 0;
-	height: 20px;
-	z-index: 25;
-	pointer-events: none;
-}
-
-.pomodoro-character-white {
-	position: absolute;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	font-size: 24px;
-	color: #ffffff;
-	filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
-	transition: left 0.3s ease;
-}
-
-.pomodoro-character-gold {
-	position: absolute;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	font-size: 24px;
-	color: #ffd700;
-	opacity: 0;
-	transition: left 0.3s ease, opacity 0.3s ease;
-	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
-}
-
-.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-white,
-.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-gold {
-	animation: character-bounce 0.5s ease-in-out infinite;
-}
-
-@keyframes character-bounce {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-3px); }
-}
-@keyframes character-bounce {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-2px); }
-}
-@keyframes character-bounce {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-2px); }
-}
-
-
-.pomodoro-white-track {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 0%;
-	background: #ffffff;
-	transition: width 0.3s ease;
-	border-radius: 6px;
-	box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-}
-
-
-
-
-
-@keyframes character-bounce {
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(-2px); }
-}
-
-
-
-.pomodoro-progress-text {
-	position: absolute;
-	top: 2px;
-	left: 12px;
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	font-family: var(--font-monospace, monospace);
-}
-
-.pomodoro-time-display {
-	font-size: 16px;
-	font-weight: 700;
-	color: var(--text-accent, #7ee787);
-}
-
-.pomodoro-percent-display {
-	font-size: 11px;
-	color: var(--text-muted, #999);
-	font-weight: 600;
-}
-
-.pomodoro-celebration-particle {
-	position: absolute;
-	font-size: 14px;
-	animation: particle-fly 1.5s ease forwards;
-	pointer-events: none;
-	z-index: 30;
-}
-
-@keyframes particle-fly {
-	0% { transform: translateY(0) scale(1); opacity: 1; }
-	100% { transform: translateY(-60px) scale(0); opacity: 0; }
-}
-
-.pomodoro-animated-bar.pomodoro-completed {
-	animation: celebrate-bar 0.6s ease;
-}
-
-@keyframes celebrate-bar {
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(-6px); }
-}
-
-.pomodoro-animated-bar.pomodoro-no-animations * {
-	animation: none !important;
-	transition: none !important;
-}
-
-/* Responsive adjustments for animated bar */
-@media (max-width: 600px) {
-	.pomodoro-animated-bar { bottom: 50px; height: 65px; }
-	.pomodoro-animated-bg { height: 35px; }
-	.pomodoro-progress-trail { bottom: 3px; left: 8px; right: 8px; height: 10px; }
-	.pomodoro-animated-controls { top: 1px; right: 8px; }
-	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 12px; }
-	.pomodoro-character { font-size: 16px; }
-	.pomodoro-track-coin { font-size: 9px; }
-	.pomodoro-time-display { font-size: 14px; }
-	.pomodoro-percent-display { font-size: 10px; }
-}
-
-.pomodoro-animated-bar.pomodoro-visible {
-	opacity: 1;
-	pointer-events: auto;
-}
-
-.pomodoro-animated-bg {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 40px;
-	background: transparent;
-	margin: 0 8px;
-}
-
-.pomodoro-animated-controls {
-	position: absolute;
-	top: 2px;
-	right: 12px;
-	display: flex;
-	gap: 6px;
-	z-index: 10;
-}
-
-.pomodoro-animated-btn {
-	width: 32px;
-	height: 32px;
-	border: none;
-	border-radius: 6px;
-	background: rgba(42, 42, 42, 0.8);
-	color: var(--text-normal, #ddd);
-	font-size: 14px;
-	font-weight: bold;
-	cursor: pointer;
-	transition: all 0.15s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(4px);
-}
-
-.pomodoro-animated-btn:hover {
-	background: rgba(58, 58, 58, 0.9);
-	transform: scale(1.03);
-}
-
-.pomodoro-animated-btn:active {
-	transform: scale(0.97);
-}
-
-.pomodoro-progress-trail {
-	position: absolute;
-	bottom: 4px;
-	left: 12px;
-	right: 12px;
-	height: 12px;
-	background: rgba(0, 0, 0, 0.2);
-	border-radius: 6px;
-	overflow: hidden;
-}
-
-
-.pomodoro-track-coin {
-	position: absolute;
-	font-size: 9px;
-	opacity: 0.4;
-	color: #fff;
-	text-shadow: 0 0 1px rgba(0, 0, 0, 0.8);
-	transform: translate(-50%, -50%);
-	pointer-events: none;
-}
-
-
-
-
-
-
-
-
-@keyframes character-bounce {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-2px); }
-}
-
-.pomodoro-progress-text {
-	position: absolute;
-	top: 2px;
-	left: 12px;
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	font-family: var(--font-monospace, monospace);
-}
-
-.pomodoro-time-display {
-	font-size: 16px;
-	font-weight: 700;
-	color: var(--text-accent, #7ee787);
-}
-
-.pomodoro-percent-display {
-	font-size: 11px;
-	color: var(--text-muted, #999);
-	font-weight: 600;
-}
-
-.pomodoro-celebration-particle {
-	position: absolute;
-	font-size: 14px;
-	animation: particle-fly 1.5s ease forwards;
-	pointer-events: none;
-	z-index: 25;
-}
-
-@keyframes particle-fly {
-	0% { transform: translateY(0) scale(1); opacity: 1; }
-	100% { transform: translateY(-60px) scale(0); opacity: 0; }
-}
-
-.pomodoro-animated-bar.pomodoro-completed {
-	animation: celebrate-bar 0.6s ease;
-}
-
-@keyframes celebrate-bar {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translateY(-6px); }
-}
-
-.pomodoro-animated-bar.pomodoro-no-animations * {
-	animation: none !important;
-	transition: none !important;
-}
-
-/* Responsive adjustments for animated bar */
-@media (max-width: 600px) {
-	.pomodoro-animated-bar { bottom: 50px; height: 65px; }
-	.pomodoro-animated-bg { height: 35px; }
-	.pomodoro-progress-trail { bottom: 3px; left: 8px; right: 8px; height: 10px; }
-	.pomodoro-animated-controls { top: 1px; right: 8px; }
-	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 12px; }
-	.pomodoro-character { font-size: 16px; }
-	.pomodoro-track-coin { font-size: 8px; }
-	.pomodoro-time-display { font-size: 14px; }
-	.pomodoro-percent-display { font-size: 10px; }
-}
-.pomodoro-animated-bar.pomodoro-visible {
-	opacity: 1;
-	pointer-events: auto;
-}
-
-.pomodoro-animated-bg {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 40px;
-	background: transparent;
-	margin: 0 8px;
-}
-
-.pomodoro-animated-controls {
-	position: absolute;
-	top: 2px;
-	right: 12px;
-	display: flex;
-	gap: 6px;
-	z-index: 10;
-}
-
-.pomodoro-animated-btn {
-	width: 32px;
-	height: 32px;
-	border: none;
-	border-radius: 6px;
-	background: rgba(42, 42, 42, 0.8);
-	color: var(--text-normal, #ddd);
-	font-size: 14px;
-	font-weight: bold;
-	cursor: pointer;
-	transition: all 0.15s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(4px);
-}
-
-.pomodoro-animated-btn:hover {
-	background: rgba(58, 58, 58, 0.9);
-	transform: scale(1.03);
-}
-
-.pomodoro-animated-btn:active {
-	transform: scale(0.97);
-}
-
-.pomodoro-progress-trail {
-	position: absolute;
-
-
-
-.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character .pomodoro-character-inner {
-	animation: star-run 0.5s ease-in-out infinite;
-}
-
-@keyframes star-run {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-2px); }
-}
-	bottom: 4px;
-	left: 12px;
-	right: 12px;
-	height: 12px;
-	background: rgba(0, 0, 0, 0.2);
-	border-radius: 6px;
-	overflow: hidden;
-}
-
-
-.pomodoro-track-coin {
-	position: absolute;
-	font-size: 9px;
-	opacity: 0.3;
-	color: #fff;
-	text-shadow: 0 0 1px rgba(0, 0, 0, 0.8);
-	transform: translate(-50%, -50%);
-	pointer-events: none;
-}
-
-
-
-
-@keyframes star-run {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translate(-50%, -50%) translateY(-1px); }
-}
-
-.pomodoro-progress-text {
-	position: absolute;
-	top: 2px;
-	left: 12px;
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	font-family: var(--font-monospace, monospace);
-}
-
-.pomodoro-time-display {
-	font-size: 16px;
-	font-weight: 700;
-	color: var(--text-accent, #7ee787);
-}
-
-.pomodoro-percent-display {
-	font-size: 11px;
-	color: var(--text-muted, #999);
-	font-weight: 600;
-}
-
-.pomodoro-celebration-particle {
-	position: absolute;
-	font-size: 14px;
-	animation: particle-fly 1.5s ease forwards;
-	pointer-events: none;
-	z-index: 20;
-}
-
-@keyframes particle-fly {
-	0% { transform: translateY(0) scale(1); opacity: 1; }
-	100% { transform: translateY(-60px) scale(0); opacity: 0; }
-}
-
-.pomodoro-animated-bar.pomodoro-completed .pomodoro-character {
-	animation: star-celebrate 0.8s ease;
-}
-
-@keyframes star-celebrate {
-	0%, 100% { transform: translate(-50%, -50%) scale(1); }
-	50% { transform: translate(-50%, -50%) scale(1.3); }
-}
-
-.pomodoro-animated-bar.pomodoro-no-animations * {
-	animation: none !important;
-	transition: none !important;
-}
-
-/* Responsive adjustments for animated bar */
-@media (max-width: 600px) {
-	.pomodoro-animated-bar { bottom: 50px; height: 65px; }
-	.pomodoro-animated-bg { height: 35px; }
-	.pomodoro-progress-trail { bottom: 3px; left: 8px; right: 8px; height: 10px; }
-	.pomodoro-animated-controls { top: 1px; right: 8px; }
-	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 12px; }
-	.pomodoro-character { font-size: 14px; }
-	.pomodoro-track-coin { font-size: 8px; }
-	.pomodoro-time-display { font-size: 14px; }
-	.pomodoro-percent-display { font-size: 10px; }
-}
-	animation: star-glow 1.5s ease-in-out infinite;
-}
-
-@keyframes star-glow {
-	0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 4px #ffd700); }
-	50% { filter: drop-shadow(0 0 12px rgba(255, 255, 255, 1)) drop-shadow(0 0 6px #ffd700); }
-}
-
-
-@keyframes star-run {
-	0%, 100% { transform: translate(-50%, -50%) rotate(-8deg) translateY(0); }
-	50% { transform: translate(-50%, -50%) rotate(8deg) translateY(-2px); }
-}
-
-.pomodoro-progress-text {
-	position: absolute;
-	top: 6px;
-	left: 16px;
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	font-family: var(--font-monospace, monospace);
-}
-
-.pomodoro-time-display {
-	font-size: 18px;
-	font-weight: 700;
-	color: var(--text-accent, #7ee787);
-	text-shadow: 0 0 8px rgba(126, 231, 135, 0.3);
-}
-
-.pomodoro-percent-display {
-	font-size: 12px;
-	color: var(--text-muted, #999);
-	font-weight: 600;
-}
-
-.pomodoro-celebration-particle {
-	position: absolute;
-	font-size: 16px;
-	animation: particle-fly 2s ease forwards;
-	pointer-events: none;
-	z-index: 20;
-}
-
-@keyframes particle-fly {
-	0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-	100% { transform: translateY(-80px) scale(0) rotate(360deg); opacity: 0; }
-}
-
-.pomodoro-animated-bar.pomodoro-completed .pomodoro-white-track {
-	animation: track-complete 0.8s ease forwards;
-}
-
-@keyframes track-complete {
-	0% { background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.9)); }
-	50% { background: linear-gradient(to right, #ffd700, #fff, #ffd700); }
-	100% { background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.9)); }
-}
-
-.pomodoro-animated-bar.pomodoro-completed {
-	animation: celebrate-bar 0.6s ease;
-}
-
-@keyframes celebrate-bar {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	50% { transform: translateY(-6px); }
-}
-
-.pomodoro-animated-bar.pomodoro-no-animations * {
-	animation: none !important;
-	transition: none !important;
-}
-
-/* Responsive adjustments for animated bar */
-@media (max-width: 600px) {
-	.pomodoro-animated-bar { bottom: 50px; height: 75px; }
-	.pomodoro-animated-bg { height: 40px; margin: 0 4px; }
-	.pomodoro-progress-trail { bottom: 6px; left: 10px; right: 10px; height: 16px; }
-	.pomodoro-animated-controls { top: 4px; right: 10px; }
-	.pomodoro-animated-btn { width: 32px; height: 32px; font-size: 14px; }
-	.pomodoro-character { font-size: 16px; }
-	.pomodoro-track-coin { font-size: 10px; }
-	.pomodoro-time-display { font-size: 16px; }
-	.pomodoro-percent-display { font-size: 11px; }
-}
-	right: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 16px;
-	font-family: var(--font-monospace, monospace);
-}
-
-.pomodoro-time-display {
-	font-size: 24px;
-	font-weight: 700;
-	color: var(--text-accent, #7ee787);
-	text-shadow: 0 0 10px rgba(126, 231, 135, 0.3);
-}
-
-.pomodoro-percent-display {
-	font-size: 14px;
-	color: var(--text-muted, #999);
-	font-weight: 600;
-}
-
-.pomodoro-celebration-particle {
-	position: absolute;
-	font-size: 24px;
-	animation: particle-fly 2s ease forwards;
-	pointer-events: none;
-	z-index: 20;
-}
-
-@keyframes particle-fly {
-	0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-	100% { transform: translateY(-120px) scale(0) rotate(360deg); opacity: 0; }
-}
-
-.pomodoro-animated-bar.pomodoro-completed {
-	animation: celebrate-bar 0.8s ease;
-}
-
-@keyframes celebrate-bar {
-	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-	25% { transform: translateY(-8px); }
-	50% { transform: translateY(-12px); }
-	75% { transform: translateY(-8px); }
-}
-
-.pomodoro-animated-bar.pomodoro-no-animations * {
-	animation: none !important;
-	transition: none !important;
-}
-
-/* Responsive adjustments for animated bar */
-@media (max-width: 600px) {
-	.pomodoro-animated-bar { bottom: 50px; height: 120px; }
-	.pomodoro-animated-bg { height: 70px; margin: 0 5px; }
-	.pomodoro-progress-trail { height: 40px; margin: 30px 10px 8px; }
-	.pomodoro-animated-controls { top: 8px; right: 10px; }
-	.pomodoro-animated-btn { width: 38px; height: 38px; font-size: 16px; }
-	.pomodoro-character { font-size: 24px; top: -6px; }
-	.pomodoro-item { font-size: 16px; }
-	.pomodoro-time-display { font-size: 20px; }
-	.pomodoro-percent-display { font-size: 12px; }
-}
-`;
+	/* Pomodoro Calendar Plugin Styles */
+	.pomodoro-ribbon-icon { position: relative; color: var(--text-muted, #888) !important; }
+	.pomodoro-ribbon-icon svg { width: 20px; height: 20px; stroke: currentColor; }
+	.pomodoro-ribbon-icon:hover { color: var(--text-normal, #ddd) !important; }
+	.pomodoro-ribbon-icon.pomodoro-idle { opacity: 0.8; }
+	.pomodoro-ribbon-icon.pomodoro-running { opacity: 1; color: var(--text-accent, #7ee787) !important; animation: pulse-icon 1.5s ease-in-out infinite; }
+	.pomodoro-ribbon-icon.pomodoro-paused { opacity: 0.5; color: var(--text-muted, #666) !important; }
+	@keyframes pulse-icon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+	/* Animated Progress Bar Styles */
+	.pomodoro-animated-bar { position: fixed; left: 0; right: 0; bottom: 60px; height: 70px; background: transparent; display: none; flex-direction: column; justify-content: flex-end; z-index: 1000; opacity: 1; transition: opacity 0.3s ease; pointer-events: none; }
+	.pomodoro-animated-bar.pomodoro-visible { opacity: 1; pointer-events: auto; }
+	.pomodoro-animated-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: transparent; margin: 0 8px; }
+	.pomodoro-animated-controls { position: absolute; top: -8px; right: 50%; transform: translateX(50%); display: flex; gap: 8px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+			.pomodoro-animated-bar:hover .pomodoro-animated-controls { opacity: 1; pointer-events: auto; }
+.pomodoro-direction-rtl .pomodoro-animated-controls { right: auto; left: 50%; transform: translateX(-50%); }
+	.pomodoro-action-btn { opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
+	.pomodoro-animated-bar:hover .pomodoro-action-btn { opacity: 1; pointer-events: auto; }
+	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 14px; border-radius: 6px; border: none; background: rgba(42, 42, 42, 0.8); color: var(--text-normal, #ddd); font-weight: bold; cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+	.pomodoro-animated-btn:hover { background: rgba(58, 58, 58, 0.9); transform: scale(1.03); }
+	.pomodoro-animated-btn:active { transform: scale(0.97); }
+	.pomodoro-progress-trail { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: var(--interactive-accent, #7ee787); border-radius: 6px; overflow: hidden; }
+	.pomodoro-white-track { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--background-primary); transition: width 0.3s ease; border-radius: 6px; }
+	.pomodoro-direction-rtl .pomodoro-white-track { left: auto; right: 0; }
+	.pomodoro-coin-track { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: transparent; border-radius: 6px; z-index: 5; pointer-events: none; }
+	.pomodoro-track-coin { position: absolute; font-size: 9px; opacity: 0.3; color: #fff; text-shadow: 0 0 1px rgba(0, 0, 0, 0.8); transform: translate(-50%, -50%); pointer-events: none; }
+	.pomodoro-character { position: absolute; bottom: 4px; left: 0; right: 0; height: 20px; z-index: 25; pointer-events: none; }
+	.pomodoro-character-white { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)); transition: left 0.3s ease; }
+	.pomodoro-character-gold { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #ffd700; opacity: 0; transition: left 0.3s ease, opacity 0.3s ease; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
+	.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-white, .pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-gold { animation: character-bounce 0.5s ease-in-out infinite; }
+	@keyframes character-bounce { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-3px); } }
+	.pomodoro-progress-text { position: absolute; top: 2px; left: 12px; right: 12px; display: flex; align-items: center; gap: 12px; font-family: var(--font-monospace, monospace); pointer-events: none; justify-content: flex-end; }
+	.pomodoro-direction-rtl .pomodoro-progress-text { justify-content: flex-start; }
+	.pomodoro-time-clickable { display: flex; align-items: center; gap: 4px; cursor: pointer; pointer-events: auto; transition: opacity 0.2s ease; user-select: none; }
+	.pomodoro-time-clickable:hover { opacity: 0.8; }
+	.pomodoro-time-display { font-size: 18px; font-weight: 700; color: var(--text-accent, #7ee787); text-shadow: 0 0 8px rgba(126, 231, 135, 0.3); }
+	.pomodoro-total-duration { font-size: 12px; color: var(--text-muted, #999); font-weight: 500; }
+	.pomodoro-percent-display { font-size: 12px; color: var(--text-muted, #999); font-weight: 600; }
+	.pomodoro-celebration-particle { position: absolute; font-size: 16px; animation: particle-fly 2s ease forwards; pointer-events: none; z-index: 30; }
+	@keyframes particle-fly { 0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } 100% { transform: translateY(-80px) scale(0) rotate(360deg); opacity: 0; } }
+	.pomodoro-animated-bar.pomodoro-completed { animation: celebrate-bar 0.8s ease; }
+	@keyframes celebrate-bar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+	.pomodoro-animated-bar.pomodoro-completed .pomodoro-white-track { animation: track-complete 0.8s ease forwards; }
+	@keyframes track-complete { 0% { background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.9)); } 50% { background: linear-gradient(to right, #ffd700, #fff, #ffd700); } 100% { background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.9)); } }
+	.pomodoro-animated-bar.pomodoro-completed .pomodoro-character { animation: star-celebrate 0.8s ease; }
+	@keyframes star-celebrate { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.3); } }
+	.pomodoro-animated-bar.pomodoro-no-animations * { animation: none !important; transition: none !important; }
+
+	/* Responsive adjustments */
+	@media (max-width: 600px) {
+		.pomodoro-animated-bar { bottom: 50px; height: 75px; }
+		.pomodoro-animated-bg { height: 40px; margin: 0 4px; }
+		.pomodoro-progress-trail { bottom: 6px; left: 10px; right: 10px; height: 16px; }
+		.pomodoro-animated-controls { top: 4px; right: 10px; }
+		.pomodoro-animated-btn { width: 32px; height: 32px; font-size: 14px; }
+		.pomodoro-character { font-size: 16px; }
+		.pomodoro-track-coin { font-size: 10px; }
+		.pomodoro-time-display { font-size: 16px; }
+		.pomodoro-percent-display { font-size: 11px; }
+	}
+	`;
 		const styleEl = document.createElement('style');
 		styleEl.textContent = cssContent;
 		styleEl.id = `${this.pluginId}-styles}`;
@@ -1322,7 +661,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 */
 	updateStatusBarStyle(): void {
 		// Update floating bar style
-		this.animatedBar?.updateStyle(this.settings.progressBarStyle, this.settings.solidColor);
+		this.animatedBar?.updateStyle(this.settings.progressBarStyle);
 	}
 
 	/**
@@ -1374,4 +713,4 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 	}
-	}
+}

@@ -39,6 +39,8 @@ export class PomodoroAnimatedBar {
 	private whiteTrack: HTMLElement | null = null;
 	private timeDisplay: HTMLElement | null = null;
 	private percentDisplay: HTMLElement | null = null;
+	private timeClickableArea: HTMLElement | null = null;
+	private totalDurationDisplay: HTMLElement | null = null;
 	private toggleBtn: HTMLElement | null = null;
 	private currentProgress = 0;
 	private animationFrame: number | null = null;
@@ -147,12 +149,27 @@ export class PomodoroAnimatedBar {
 			cls: 'pomodoro-progress-text'
 		});
 
-		this.timeDisplay = progressText.createEl('span', {
+		// Time clickable area
+		this.timeClickableArea = progressText.createEl('div', {
+			cls: 'pomodoro-time-clickable'
+		});
+		this.timeClickableArea.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.emitAction('toggle');
+		});
+
+		// Completed count display
+		this.totalDurationDisplay = this.timeClickableArea.createEl('span', {
+			cls: 'pomodoro-total-duration',
+			text: '🍅 x0'
+		});
+
+		this.timeDisplay = this.timeClickableArea.createEl('span', {
 			cls: 'pomodoro-time-display',
 			text: '25:00'
 		});
 
-		this.percentDisplay = progressText.createEl('span', {
+		this.percentDisplay = this.timeClickableArea.createEl('span', {
 			cls: 'pomodoro-percent-display',
 			text: '0%'
 		});
@@ -408,7 +425,7 @@ export class PomodoroAnimatedBar {
 	/**
 	 * Update style (for compatibility)
 	 */
-	updateStyle(style: string, color: string): void {
+	updateStyle(style: string): void {
 		// Update the items based on style selection
 		if (style === 'coins') {
 			this.config.items = ITEM_SETS.coins;
@@ -486,6 +503,8 @@ export class PomodoroAnimatedBar {
 		this.characterGold = null;
 		this.timeDisplay = null;
 		this.percentDisplay = null;
+		this.timeClickableArea = null;
+		this.totalDurationDisplay = null;
 		this.toggleBtn = null;
 		this.containerEl = null;
 	}

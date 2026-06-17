@@ -7,8 +7,7 @@ import { PomodoroSettings } from './pomodoro';
 
 export interface PomodoroCalendarSettings extends PomodoroSettings {
 	defaultCalendarId: string;
-	progressBarStyle: 'rainbow' | 'gradient' | 'solid' | 'minimal';
-	solidColor: string;
+	progressBarStyle: 'coins' | 'leaves' | 'tomatoes' | 'stars' | 'hearts';
 	progressDirection: 'left-to-right' | 'right-to-left';
 	showAnimations: boolean;
 	showNotifications: boolean;
@@ -25,8 +24,7 @@ export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
 	autoStartBreak: false,
 	autoStartPomodoro: false,
 	defaultCalendarId: '',
-	progressBarStyle: 'rainbow',
-	solidColor: '#ff6b6b',
+	progressBarStyle: 'coins',
 	progressDirection: 'left-to-right',
 	showAnimations: true,
 	showNotifications: true,
@@ -182,33 +180,22 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	private createProgressBarSettings(containerEl: HTMLElement): void {
 		containerEl.createEl('h3', { text: '🎨 进度条样式' });
 
-		// Progress Bar Style
-		new Setting(containerEl)
-			.setName('进度条样式')
-			.setDesc('选择状态栏进度条的显示样式')
-			.addDropdown(dropdown => dropdown
-				.addOption('rainbow', '🌈 彩虹渐变')
-				.addOption('gradient', '🎨 渐变色')
-				.addOption('solid', '🔴 纯色')
-				.addOption('minimal', '📏 极简')
-				.setValue(this.plugin.settings.progressBarStyle)
-				.onChange(async (value) => {
-					this.plugin.settings.progressBarStyle = value as any;
-					await this.plugin.saveSettings();
-					this.plugin.updateStatusBarStyle();
-				}));
-
-		// Solid Color Picker
-		new Setting(containerEl)
-			.setName('纯色颜色')
-			.setDesc('当选择纯色样式时使用的颜色')
-			.addColorPicker(colorPicker => colorPicker
-				.setValue(this.plugin.settings.solidColor)
-				.onChange(async (value) => {
-					this.plugin.settings.solidColor = value;
-					await this.plugin.saveSettings();
-					this.plugin.updateStatusBarStyle();
-				}));
+			// Track Items Style
+			new Setting(containerEl)
+				.setName("跑道物品样式")
+				.setDesc("选择跑道上显示的物品类型")
+				.addDropdown(dropdown => dropdown
+					.addOption("coins", "🪙 金币")
+					.addOption("leaves", "🍃 树叶")
+					.addOption("tomatoes", "🍅 番茄")
+					.addOption("stars", "⭐ 星星")
+					.addOption("hearts", "❤️ 爱心")
+					.setValue(this.plugin.settings.progressBarStyle || "coins")
+					.onChange(async (value) => {
+						this.plugin.settings.progressBarStyle = value as any;
+						await this.plugin.saveSettings();
+						this.plugin.updateStatusBarStyle();
+					}));
 
 			// Progress Direction
 			new Setting(containerEl)
