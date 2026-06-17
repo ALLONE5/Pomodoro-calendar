@@ -257,12 +257,12 @@ export class PomodoroAnimatedBar {
 		const percentage = Math.max(0, Math.min(100, progress * 100));
 
 		// Update character position (from left to right)
-		if (this.characterEl) {
-			this.characterEl.style.left = `${percentage}%`;
+		if (this.characterWhite) {
+			this.characterWhite.style.left = `${percentage}%`;
 		}
-
-		// Update gold star opacity (color change from white to gold)
 		if (this.characterGold) {
+			this.characterGold.style.left = `${percentage}%`;
+			// Update gold star opacity (color change from white to gold)
 			const goldOpacity = percentage / 100;
 			this.characterGold.style.setProperty('opacity', `${goldOpacity}`, 'important');
 		}
