@@ -187,15 +187,16 @@ export class PomodoroAnimatedBar {
 	private createCoinDecorations(): void {
 		if (!this.coinTrack) return;
 
-		// Create 10 coins spaced evenly along the track
+		// Create 10 items spaced evenly along the track
+		const items = this.config.items;
 		for (let i = 0; i < 10; i++) {
 			const coin = this.coinTrack.createEl('span', {
 				cls: 'pomodoro-track-coin'
 			});
 
-			// Alternate between coin symbols
-			const coinSymbol = i % 2 === 0 ? '🪙' : '💰';
-			coin.textContent = coinSymbol;
+			// Use items from config, cycling through them
+			const itemSymbol = items[i % items.length];
+			coin.textContent = itemSymbol;
 
 			// Position along the track
 			const position = (i / 9) * 100;
