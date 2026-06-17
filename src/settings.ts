@@ -2,7 +2,7 @@
  * Settings Panel for Pomodoro Calendar Plugin
  */
 
-import { PluginSettingTab, Setting, App } from 'obsidian';
+import { PluginSettingTab, Setting, App, Notice } from 'obsidian';
 import { PomodoroSettings } from './pomodoro';
 
 export interface PomodoroCalendarSettings extends PomodoroSettings {
@@ -12,11 +12,10 @@ export interface PomodoroCalendarSettings extends PomodoroSettings {
 	showNotifications: boolean;
 	notificationSound: boolean;
 	enableCalendarIntegration: boolean;
-	// CalDAV Settings
+	// CalDAV Settings - simplified to single URL
 	caldavUrl: string;
 	caldavUsername: string;
 	caldavPassword: string;
-	caldavCalendarPath: string;
 }
 
 export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
@@ -35,7 +34,6 @@ export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
 	caldavUrl: '',
 	caldavUsername: '',
 	caldavPassword: '',
-	caldavCalendarPath: '',
 };
 
 /**
@@ -247,12 +245,12 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// CalDAV URL
+		// CalDAV URL (combined server + path)
 		new Setting(containerEl)
-			.setName('CalDAV 服务器地址')
-			.setDesc('例如：https://caldav.icloud.com/')
+			.setName('CalDAV 日历地址')
+			.setDesc('完整的 CalDAV 日历 URL，例如：https://caldav.icloud.com/123456/calendars/Home/')
 			.addText(text => text
-				.setPlaceholder('https://caldav.icloud.com/')
+				.setPlaceholder('https://caldav.icloud.com/.../calendars/Home/')
 				.setValue(this.plugin.settings.caldavUrl)
 				.onChange(async (value) => {
 					this.plugin.settings.caldavUrl = value.trim();
@@ -284,16 +282,41 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				})
 				.inputEl.type = 'password');
 
-		// Calendar Path
+		// Test Connection Button
 		new Setting(containerEl)
-			.setName('日历路径')
-			.setDesc('日历的 CalDAV 路径，例如：/calendars/123456/')
-			.addText(text => text
-				.setPlaceholder('/calendars/123456/')
-				.setValue(this.plugin.settings.caldavCalendarPath)
-				.onChange(async (value) => {
-					this.plugin.settings.caldavCalendarPath = value.trim();
-					await this.plugin.saveSettings();
+			.setName('测试连接')
+			.setDesc('验证 CalDAV 配置是否正确')
+			.addButton(button => button
+				.setButtonText('测试连接')
+				.setClass('mod-cta')
+				.onClick(async () => {
+					button.setButtonText('测试中...');
+					button.setDisabled(true);
+
+					const calendar = this.plugin.calendarIntegration;
+					if (!calendar) {
+						new Notice('❌ 日历集成未初始化');
+						button.setButtonText('测试连接');
+						button.setDisabled(false);
+						return;
+					}
+
+					// Create a temporary config from current settings
+					const tempConfig = {
+						url: this.plugin.settings.caldavUrl,
+						username: this.plugin.settings.caldavUsername,
+						password: this.plugin.settings.caldavPassword,
+						calendarPath: '' // Will be extracted from URL
+					};
+
+					// Temporarily init with this config
+					calendar.init(tempConfig);
+
+					const result = await calendar.testConnection();
+					new Notice(result.message);
+
+					button.setButtonText('测试连接');
+					button.setDisabled(false);
 				}));
 
 		// Info text
@@ -304,9 +327,11 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 			<p>💡 提示：</p>
 			<ul>
 				<li><strong>iCloud 用户</strong>：前往 appleid.apple.com 生成应用专用密码</li>
-				<li>日历路径可以在 CalDAV 客户端或 FCR 设置中找到</li>
+				<li>在 FCR 设置或 CalDAV 客户端中找到完整的日历 URL</li>
 				<li>支持 iCloud、Google Calendar、Fastmail 等 CalDAV 服务</li>
 			</ul>
+			<p style="margin-top: 8px;">📝 iCloud 日历 URL 格式：</p>
+			<p style="font-size: 0.9em; opacity: 0.8;">https://pXX-caldav.icloud.com/USER_ID/calendars/CALENDAR_ID/</p>
 		`;
 	}
 

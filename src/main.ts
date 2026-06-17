@@ -3,12 +3,91 @@
  * Main Plugin Entry Point
  */
 
-import { Plugin, Notice, addIcon } from 'obsidian';
+import { Plugin, Notice, addIcon, Modal } from 'obsidian';
 import { PomodoroTimer, PomodoroSession, PomodoroType } from './pomodoro';
 import { PomodoroAnimatedBar } from './animatedBar';
 import { PomodoroSettingsTab, PomodoroCalendarSettings, DEFAULT_SETTINGS } from './settings';
 import { CalendarIntegration } from './calendarIntegration';
 import { PomodoroDataStore, StoredData } from './dataStore';
+import { App } from 'obsidian';
+
+/**
+ * Simple Input Modal for Obsidian
+ */
+class InputModal extends Modal {
+	private resolve: (value: string) => void;
+	private placeholder: string;
+	private defaultValue: string;
+
+	constructor(app: App, placeholder: string, defaultValue: string = '') {
+		super(app);
+		this.placeholder = placeholder;
+		this.defaultValue = defaultValue;
+		this.resolve = () => {};
+	}
+
+	onOpen(): void {
+		const { contentEl } = this;
+
+		contentEl.addClass('pomodoro-input-modal');
+		contentEl.createEl('h2', { text: '📝 记录番茄钟内容' });
+
+		const input = contentEl.createEl('input', {
+			type: 'text',
+			placeholder: this.placeholder,
+		});
+		input.value = this.defaultValue;
+		input.style.width = '100%';
+		input.style.marginBottom = '1rem';
+
+		const buttonContainer = contentEl.createDiv({
+			cls: 'modal-button-container'
+		});
+
+		const submitBtn = buttonContainer.createEl('button', {
+			text: '确定',
+			cls: 'mod-cta'
+		});
+		const cancelBtn = buttonContainer.createEl('button', {
+			text: '取消'
+		});
+
+		submitBtn.addEventListener('click', () => {
+			this.resolve(input.value);
+			this.close();
+		});
+
+		cancelBtn.addEventListener('click', () => {
+			this.resolve('');
+			this.close();
+		});
+
+		// Allow Enter key to submit
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') {
+				this.resolve(input.value);
+				this.close();
+			} else if (e.key === 'Escape') {
+				this.resolve('');
+				this.close();
+			}
+		});
+
+		setTimeout(() => input.focus(), 10);
+	}
+
+	onClose(): void {
+		const { contentEl } = this;
+		contentEl.empty();
+	}
+
+	async getInput(): Promise<string> {
+		return new Promise((resolve) => {
+			this.resolve = resolve as any;
+			this.open();
+		});
+	}
+}
 
 // Register custom icon
 const POMODORO_ICON = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -363,7 +442,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			url: this.settings.caldavUrl,
 			username: this.settings.caldavUsername,
 			password: this.settings.caldavPassword,
-			calendarPath: this.settings.caldavCalendarPath
+			// calendarPath is now included in the URL
 		};
 
 		const success = this.calendarIntegration.init(config);
@@ -427,17 +506,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			new Notice('🍅 开始专注！');
 		}
 
-		// Create calendar event
-		if (this.settings.enableCalendarIntegration) {
-			console.log('Creating calendar event...');
-			this.calendarIntegration.createPomodoroEvent(session).then((eventId) => {
-				if (eventId) {
-					console.log('Created calendar event:', eventId);
-				} else {
-					console.log('Failed to create calendar event');
-				}
-			});
-		}
 
 		// Save to data store
 		this.dataStore.saveCurrentSession(session, null);
@@ -459,10 +527,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		const message = type === 'shortBreak' ? '休息一下' : '长休时间';
 		new Notice(emoji + " " + message + "!");
 
-		// Create calendar event
-		if (this.settings.enableCalendarIntegration) {
-			this.calendarIntegration.createPomodoroEvent(session);
-		}
 
 		// Save to data store
 		this.dataStore.saveCurrentSession(session, null);
@@ -607,7 +671,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		console.log('Pomodoro resumed:', session);
 	}
 
-	private onPomodoroComplete(session: PomodoroSession): void {
+	private async onPomodoroComplete(session: PomodoroSession): Promise<void> {
 		console.log('Pomodoro completed:', session);
 
 		// Update floating bar with completed session
@@ -626,9 +690,15 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			}
 		}
 
-		// Update calendar event
+		// Create calendar event with optional custom title
 		if (this.settings.enableCalendarIntegration) {
-			this.calendarIntegration.completePomodoroEvent(session);
+			// Only prompt for pomodoro sessions, not breaks
+			let customTitle = '';
+			if (session.type === 'pomodoro') {
+				const modal = new InputModal(this.app, '留空使用默认标题', '');
+				customTitle = await modal.getInput();
+			}
+			this.calendarIntegration.createPomodoroEvent(session, customTitle);
 		}
 
 		// Update statistics

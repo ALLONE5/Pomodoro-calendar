@@ -211,7 +211,7 @@ export class PomodoroAnimatedBar {
 			coin.textContent = itemSymbol;
 
 			// Position along the track with margin on edges
-			const margin = 10; // 10% margin on each side
+			const margin = 3; // 3% margin on each side
 			const position = margin + (i / 9) * (100 - 2 * margin);
 			coin.style.left = `${position}%`;
 			coin.style.top = '50%';

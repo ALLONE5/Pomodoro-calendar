@@ -3,7 +3,7 @@
  * Handles integration with CalDAV servers (iCloud, Google, etc.)
  */
 
-import { App, Notice } from 'obsidian';
+import { App, Notice, requestUrl } from 'obsidian';
 import { PomodoroSession, PomodoroType } from './pomodoro';
 
 /**
@@ -27,7 +27,6 @@ export interface CalDAVConfig {
 	url: string;
 	username: string;
 	password: string;
-	calendarPath: string;
 }
 
 /**
@@ -48,7 +47,7 @@ export class CalendarIntegration {
 	 * Initialize the integration with CalDAV config
 	 */
 	init(config: CalDAVConfig): boolean {
-		if (!config.url || !config.username || !config.password || !config.calendarPath) {
+		if (!config.url || !config.username || !config.password) {
 			console.log('CalDAV: Incomplete configuration');
 			return false;
 		}
@@ -67,10 +66,58 @@ export class CalendarIntegration {
 	}
 
 	/**
+	 * Test CalDAV connection
+	 */
+	async testConnection(): Promise<{ success: boolean; message: string }> {
+		if (!this.config) {
+			return { success: false, message: '配置不完整' };
+		}
+
+		try {
+			// Test by making a PROPFIND request to the calendar path
+			const auth = btoa(`${this.config.username}:${this.config.password}`);
+			const testUrl = this.buildCalendarBaseUrl();
+
+			await requestUrl({
+				url: testUrl,
+				method: 'PROPFIND',
+				headers: {
+					'Authorization': `Basic ${auth}`,
+					'Depth': '0',
+					'User-Agent': 'ObsidianPomodoro/1.0'
+				}
+			});
+
+			return { success: true, message: '✅ 连接成功！CalDAV 配置正确' };
+		} catch (error: any) {
+			console.error('CalDAV connection test failed:', error);
+			if (error.status === 401) {
+				return { success: false, message: '❌ 认证失败：用户名或密码错误' };
+			} else if (error.status === 404) {
+				return { success: false, message: '❌ 未找到：日历路径可能不正确' };
+			} else if (error.status === 403) {
+				return { success: false, message: '❌ 禁止访问：没有权限访问此日历' };
+			} else {
+				return { success: false, message: `❌ 连接失败：${error.message || '未知错误'}` };
+			}
+		}
+	}
+
+	/**
+	 * Build the base URL for the calendar
+	 */
+	private buildCalendarBaseUrl(): string {
+		if (!this.config) return '';
+
+		// The URL is already the full calendar URL
+		return this.config.url.replace(/\/$/, '');
+	}
+
+	/**
 	 * Update configuration
 	 */
 	updateConfig(config: CalDAVConfig): void {
-		if (config.url && config.username && config.password && config.calendarPath) {
+		if (config.url && config.username && config.password) {
 			this.config = config;
 			this.isEnabled = true;
 		} else {
@@ -112,13 +159,11 @@ END:VCALENDAR`;
 
 		// Sanitize eventId to be URL-safe
 		const safeId = eventId.replace(/[^a-zA-Z0-9-_]/g, '_');
-		const ext = this.config.calendarPath.endsWith('.ics') ? '' : '.ics';
 
-		// Build full URL: baseUrl + calendarPath + eventId.ics
+		// The config.url is already the full calendar URL
+		// Just append the eventId.ics
 		const baseUrl = this.config.url.replace(/\/$/, '');
-		const calendarPath = this.config.calendarPath.replace(/^\//, '');
-
-		return `${baseUrl}/${calendarPath}${safeId}${ext}`;
+		return `${baseUrl}/${safeId}.ics`;
 	}
 
 	/**
@@ -130,7 +175,8 @@ END:VCALENDAR`;
 		try {
 			const auth = btoa(`${this.config.username}:${this.config.password}`);
 
-			const response = await fetch(eventPath, {
+			const response = await requestUrl({
+				url: eventPath,
 				method: 'PUT',
 				headers: {
 					'Authorization': `Basic ${auth}`,
@@ -140,11 +186,11 @@ END:VCALENDAR`;
 				body: icsData
 			});
 
-			if (response.ok || response.status === 201 || response.status === 204) {
+			if (response.status === 201 || response.status === 204) {
 				console.log('CalDAV: Event created/updated successfully');
 				return true;
 			} else {
-				console.error('CalDAV: PUT failed', response.status, response.statusText);
+				console.error('CalDAV: PUT failed', response.status, response.text);
 				return false;
 			}
 		} catch (error) {
@@ -162,7 +208,8 @@ END:VCALENDAR`;
 		try {
 			const auth = btoa(`${this.config.username}:${this.config.password}`);
 
-			const response = await fetch(eventPath, {
+			const response = await requestUrl({
+				url: eventPath,
 				method: 'DELETE',
 				headers: {
 					'Authorization': `Basic ${auth}`,
@@ -170,11 +217,11 @@ END:VCALENDAR`;
 				}
 			});
 
-			if (response.ok || response.status === 204) {
+			if (response.status === 204) {
 				console.log('CalDAV: Event deleted successfully');
 				return true;
 			} else {
-				console.error('CalDAV: DELETE failed', response.status, response.statusText);
+				console.error('CalDAV: DELETE failed', response.status, response.text);
 				return false;
 			}
 		} catch (error) {
@@ -185,14 +232,21 @@ END:VCALENDAR`;
 
 	/**
 	 * Create a pomodoro event in CalDAV
+	 * @param session The pomodoro session
+	 * @param customTitle Optional custom title for the event
 	 */
-	async createPomodoroEvent(session: PomodoroSession): Promise<string | null> {
+	async createPomodoroEvent(session: PomodoroSession, customTitle?: string): Promise<string | null> {
 		if (!this.isAvailable() || !session.startTime) {
 			return null;
 		}
 
 		try {
 			const event = this.buildPomodoroEvent(session);
+			// Apply custom title if provided
+			if (customTitle && customTitle.trim()) {
+				const emoji = event.title.split(' ')[0]; // Keep the emoji
+				event.title = `${emoji} ${customTitle.trim()}`;
+			}
 			const eventPath = this.buildEventPath(event.id);
 			const icsData = this.generateICS(event);
 
