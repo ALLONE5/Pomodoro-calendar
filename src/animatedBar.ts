@@ -31,7 +31,8 @@ export class PomodoroAnimatedBar {
 	private isCurrentlyVisible = false;
 	private isDestroyed = false;
 	private characterEl: HTMLElement | null = null;
-	private characterInnerEl: HTMLElement | null = null;
+	private characterWhite: HTMLElement | null = null;
+	private characterGold: HTMLElement | null = null;
 	private progressTrail: HTMLElement | null = null;
 	private coinTrack: HTMLElement | null = null;
 	private whiteTrack: HTMLElement | null = null;
@@ -125,11 +126,19 @@ export class PomodoroAnimatedBar {
 			cls: 'pomodoro-character'
 		});
 
-		// Inner element that actually moves
-		this.characterInnerEl = this.characterEl.createEl('span', {
-			cls: 'pomodoro-character-inner',
+		// White star (bottom layer)
+		this.characterWhite = this.characterEl.createEl('span', {
+			cls: 'pomodoro-character-white',
 			text: this.config.character
 		});
+
+		// Gold star (top layer - opacity changes with progress)
+		this.characterGold = this.characterEl.createEl('span', {
+			cls: 'pomodoro-character-gold',
+			text: this.config.character
+		});
+		// Initialize gold star as transparent
+		this.characterGold.style.opacity = '0';
 
 		// Progress percentage display
 		const progressText = this.containerEl.createEl('div', {
@@ -248,14 +257,14 @@ export class PomodoroAnimatedBar {
 		const percentage = Math.max(0, Math.min(100, progress * 100));
 
 		// Update character position (from left to right)
-		if (this.characterInnerEl) {
-			this.characterInnerEl.style.left = `${percentage}%`;
+		if (this.characterEl) {
+			this.characterEl.style.left = `${percentage}%`;
+		}
 
-			// Update star glow based on progress (white → golden glow)
-			const goldAmount = percentage / 100;
-			const glowIntensity = 4 + goldAmount * 12;
-			const goldOpacity = 0.3 + goldAmount * 0.7;
-			this.characterInnerEl.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(255, 215, 0, ${goldOpacity}))`;
+		// Update gold star opacity (color change from white to gold)
+		if (this.characterGold) {
+			const goldOpacity = percentage / 100;
+			this.characterGold.style.opacity = `${goldOpacity}`;
 		}
 
 		// Update white track width (shows how far the star has run)
@@ -361,8 +370,11 @@ export class PomodoroAnimatedBar {
 	updateConfig(config: Partial<AnimationConfig>): void {
 		if (config.character) {
 			this.config.character = config.character;
-			if (this.characterInnerEl) {
-				this.characterInnerEl.textContent = config.character;
+			if (this.characterWhite) {
+				this.characterWhite.textContent = config.character;
+			}
+			if (this.characterGold) {
+				this.characterGold.textContent = config.character;
 			}
 		}
 
@@ -443,7 +455,8 @@ export class PomodoroAnimatedBar {
 		this.coinTrack = null;
 		this.whiteTrack = null;
 		this.characterEl = null;
-		this.characterInnerEl = null;
+		this.characterWhite = null;
+		this.characterGold = null;
 		this.timeDisplay = null;
 		this.percentDisplay = null;
 		this.toggleBtn = null;
