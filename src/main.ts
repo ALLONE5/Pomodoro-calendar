@@ -612,6 +612,10 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			setTimeout(() => {
 				this.startBreak('shortBreak');
 			}, 1000);
+		} else if ((session.type === 'shortBreak' || session.type === 'longBreak') && this.settings.autoStartPomodoro) {
+			setTimeout(() => {
+				this.startPomodoro();
+			}, 1000);
 		}
 	}
 
