@@ -1333,6 +1333,13 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	}
 
 	/**
+	 * Update animation direction (called from settings)
+	 */
+	updateAnimationDirection(): void {
+		this.animatedBar?.updateDirection(this.settings.progressDirection || 'left-to-right');
+	}
+
+	/**
 	 * Restart file sync (called from settings)
 	 */
 	restartFileSync(): void {

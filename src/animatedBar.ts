@@ -10,6 +10,7 @@ interface AnimationConfig {
 	character: string;
 	items: string[];
 	backgroundColor: string;
+	direction?: 'left-to-right' | 'right-to-left';
 }
 
 // 使用白色星星角色
@@ -49,7 +50,8 @@ export class PomodoroAnimatedBar {
 		this.config = {
 			character: config?.character || DEFAULT_CHARACTER,
 			items: config?.items || ITEM_SETS.coins,
-			backgroundColor: config?.backgroundColor || 'var(--background-secondary)'
+			backgroundColor: config?.backgroundColor || 'var(--background-secondary)',
+			direction: config?.direction || 'left-to-right'
 		};
 		this.createAnimatedBar();
 	}
@@ -256,12 +258,16 @@ export class PomodoroAnimatedBar {
 	private updateDisplay(progress: number, remaining: number, state: string): void {
 		const percentage = Math.max(0, Math.min(100, progress * 100));
 
-		// Update character position (from left to right)
+		// Calculate position based on direction
+		const isRightToLeft = this.config.direction === 'right-to-left';
+		const displayPercentage = isRightToLeft ? (100 - percentage) : percentage;
+
+		// Update character position
 		if (this.characterWhite) {
-			this.characterWhite.style.left = `${percentage}%`;
+			this.characterWhite.style.left = `${displayPercentage}%`;
 		}
 		if (this.characterGold) {
-			this.characterGold.style.left = `${percentage}%`;
+			this.characterGold.style.left = `${displayPercentage}%`;
 			// Update gold star opacity (color change from white to gold)
 			const goldOpacity = percentage / 100;
 			this.characterGold.style.setProperty('opacity', `${goldOpacity}`, 'important');
@@ -434,6 +440,27 @@ export class PomodoroAnimatedBar {
 		} else {
 			this.containerEl.addClass('pomodoro-no-animations');
 		}
+	}
+
+	/**
+	 * Update animation direction
+	 */
+	updateDirection(direction: 'left-to-right' | 'right-to-left'): void {
+		if (!this.containerEl) return;
+
+		// Remove existing direction class
+		this.containerEl.removeClass('pomodoro-direction-ltr');
+		this.containerEl.removeClass('pomodoro-direction-rtl');
+
+		// Add new direction class
+		if (direction === 'left-to-right') {
+			this.containerEl.addClass('pomodoro-direction-ltr');
+		} else {
+			this.containerEl.addClass('pomodoro-direction-rtl');
+		}
+
+		// Store direction for update calculations
+		this.config.direction = direction;
 	}
 
 	/**

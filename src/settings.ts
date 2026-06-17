@@ -9,6 +9,7 @@ export interface PomodoroCalendarSettings extends PomodoroSettings {
 	defaultCalendarId: string;
 	progressBarStyle: 'rainbow' | 'gradient' | 'solid' | 'minimal';
 	solidColor: string;
+	progressDirection: 'left-to-right' | 'right-to-left';
 	showAnimations: boolean;
 	showNotifications: boolean;
 	notificationSound: boolean;
@@ -26,6 +27,7 @@ export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
 	defaultCalendarId: '',
 	progressBarStyle: 'rainbow',
 	solidColor: '#ff6b6b',
+	progressDirection: 'left-to-right',
 	showAnimations: true,
 	showNotifications: true,
 	notificationSound: true,
@@ -207,6 +209,21 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 					this.plugin.updateStatusBarStyle();
 				}));
+
+			// Progress Direction
+			new Setting(containerEl)
+				.setName('进度条方向')
+				.setDesc('选择星星和进度条的运动方向')
+				.addDropdown(dropdown => dropdown
+					.addOption('left-to-right', '⬅️➡️ 从左到右')
+					.addOption('right-to-left', '➡️⬅️ 从右到左')
+					.setValue(this.plugin.settings.progressDirection || 'left-to-right')
+					.onChange(async (value) => {
+						this.plugin.settings.progressDirection = value as any;
+						await this.plugin.saveSettings();
+						this.plugin.updateAnimationDirection();
+					}));
+
 
 		// Animation Toggle
 		new Setting(containerEl)
