@@ -43,6 +43,8 @@ export class PomodoroTimer {
 	private session: PomodoroSession | null = null;
 	private timerId: number | null = null;
 	private callbacks: PomodoroEventCallbacks = {};
+	private totalCompletedCount: number = 0;
+	private manuallyCompleted: boolean = false;
 
 	constructor(settings: PomodoroSettings, callbacks?: PomodoroEventCallbacks) {
 		this.settings = settings;
@@ -92,7 +94,7 @@ export class PomodoroTimer {
 	 * Determine next break type
 	 */
 	private getNextBreakType(): PomodoroType {
-		if (this.session && this.session.completedCount >= this.settings.longBreakInterval - 1) {
+		if (this.totalCompletedCount >= this.settings.longBreakInterval) {
 			return 'longBreak';
 		}
 		return 'shortBreak';
@@ -118,7 +120,7 @@ export class PomodoroTimer {
 			endTime: null,
 			duration,
 			remaining: duration,
-			completedCount: this.session?.completedCount || 0
+			completedCount: this.totalCompletedCount
 		};
 
 		this.startTimer();
@@ -176,10 +178,13 @@ export class PomodoroTimer {
 	/**
 	 * Manually complete the current session
 	 */
-	complete(): PomodoroSession | null {
+	complete(manual: boolean = true): PomodoroSession | null {
 		if (!this.session) {
 			return null;
 		}
+		
+		// Mark if this was a manual completion
+		this.manuallyCompleted = manual;
 
 		const completedSession = { ...this.session };
 		this.stopTimer();
@@ -189,9 +194,13 @@ export class PomodoroTimer {
 
 		// Update completed count if it was a pomodoro
 		if (completedSession.type === 'pomodoro') {
-			completedSession.completedCount++;
+			this.totalCompletedCount++;
+			completedSession.completedCount = this.totalCompletedCount;
 		}
 
+		// Add manual flag to session
+		(completedSession as any).manuallyCompleted = this.manuallyCompleted;
+		
 		this.callbacks.onComplete?.(completedSession);
 		this.session = null;
 
@@ -217,7 +226,7 @@ export class PomodoroTimer {
 
 			// Check if timer completed
 			if (this.session.remaining <= 0) {
-				this.complete();
+				this.complete(false);
 			}
 		}, 1000);
 	}
@@ -237,6 +246,13 @@ export class PomodoroTimer {
 	 */
 	private generateId(): string {
 		return `pomodoro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+	}
+
+	/**
+	 * Get the total completed pomodoro count
+	 */
+	getTotalCompletedCount(): number {
+		return this.totalCompletedCount;
 	}
 
 	/**

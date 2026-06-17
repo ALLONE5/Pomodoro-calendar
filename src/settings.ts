@@ -13,7 +13,11 @@ export interface PomodoroCalendarSettings extends PomodoroSettings {
 	showNotifications: boolean;
 	notificationSound: boolean;
 	enableCalendarIntegration: boolean;
-	syncInterval: number;
+	// CalDAV Settings
+	caldavUrl: string;
+	caldavUsername: string;
+	caldavPassword: string;
+	caldavCalendarPath: string; // e.g., /calendars/123456/
 }
 
 export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
@@ -29,8 +33,11 @@ export const DEFAULT_SETTINGS: PomodoroCalendarSettings = {
 	showAnimations: true,
 	showNotifications: true,
 	notificationSound: true,
-	enableCalendarIntegration: true,
-	syncInterval: 1
+	enableCalendarIntegration: false,
+	caldavUrl: '',
+	caldavUsername: '',
+	caldavPassword: '',
+	caldavCalendarPath: '',
 };
 
 /**
@@ -66,8 +73,6 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		// Notification Settings Section
 		this.createNotificationSettings(containerEl);
 
-		// Sync Settings Section
-		this.createSyncSettings(containerEl);
 	}
 
 	/**
@@ -87,6 +92,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					this.plugin.settings.pomodoroDuration = value;
 					await this.plugin.saveSettings();
+						this.plugin.animatedBar?.setPomodoroDuration(value * 60);
 				}))
 			.addExtraButton(button => button
 				.setIcon('reset')
@@ -94,6 +100,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				.onClick(async () => {
 					this.plugin.settings.pomodoroDuration = DEFAULT_SETTINGS.pomodoroDuration;
 					await this.plugin.saveSettings();
+						this.plugin.animatedBar?.setPomodoroDuration(DEFAULT_SETTINGS.pomodoroDuration * 60);
 					this.display();
 				}));
 
@@ -229,42 +236,67 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	 * Create Calendar Settings Section
 	 */
 	private createCalendarSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '📅 日历集成' });
+		containerEl.createEl('h3', { text: '📅 CalDAV 日历集成' });
 
 		// Enable Calendar Integration
 		new Setting(containerEl)
 			.setName('启用日历集成')
-			.setDesc('与 Full Calendar Remastered 插件集成，在日历中显示番茄钟')
+			.setDesc('将番茄钟记录到 CalDAV 日历（如 iCloud）')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableCalendarIntegration)
 				.onChange(async (value) => {
 					this.plugin.settings.enableCalendarIntegration = value;
 					await this.plugin.saveSettings();
-
-					if (value) {
-						this.plugin.initCalendarIntegration();
-					}
 				}));
 
-		// Default Calendar Selection
-		const calendars = this.plugin.getAvailableCalendars?.() || [];
-
+		// CalDAV URL
 		new Setting(containerEl)
-			.setName('默认日历')
-			.setDesc('选择默认记录番茄钟的日历')
-			.addDropdown(dropdown => {
-				dropdown.addOption('', '未选择');
-
-				calendars.forEach((cal: any) => {
-					dropdown.addOption(cal.id, cal.name);
-				});
-
-				dropdown.setValue(this.plugin.settings.defaultCalendarId);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.defaultCalendarId = value;
+			.setName('CalDAV 服务器地址')
+			.setDesc('例如：https://caldav.icloud.com/')
+			.addText(text => text
+				.setPlaceholder('https://caldav.icloud.com/')
+				.setValue(this.plugin.settings.caldavUrl)
+				.onChange(async (value) => {
+					this.plugin.settings.caldavUrl = value.trim();
 					await this.plugin.saveSettings();
-				});
-			});
+				}));
+
+		// Username
+		new Setting(containerEl)
+			.setName('用户名')
+			.setDesc('CalDAV 账号用户名（如 Apple ID 邮箱）')
+			.addText(text => text
+				.setPlaceholder('user@example.com')
+				.setValue(this.plugin.settings.caldavUsername)
+				.onChange(async (value) => {
+					this.plugin.settings.caldavUsername = value.trim();
+					await this.plugin.saveSettings();
+				}));
+
+		// Password (App-specific password)
+		new Setting(containerEl)
+			.setName('密码')
+			.setDesc('CalDAV 密码或应用专用密码')
+			.addText(text => text
+				.setPlaceholder('••••••••')
+				.setValue(this.plugin.settings.caldavPassword)
+				.onChange(async (value) => {
+					this.plugin.settings.caldavPassword = value;
+					await this.plugin.saveSettings();
+				})
+				.inputEl.type = 'password');
+
+		// Calendar Path
+		new Setting(containerEl)
+			.setName('日历路径')
+			.setDesc('日历的 CalDAV 路径，例如：/calendars/123456/')
+			.addText(text => text
+				.setPlaceholder('/calendars/123456/')
+				.setValue(this.plugin.settings.caldavCalendarPath)
+				.onChange(async (value) => {
+					this.plugin.settings.caldavCalendarPath = value.trim();
+					await this.plugin.saveSettings();
+				}));
 
 		// Info text
 		const infoEl = containerEl.createEl('div', {
@@ -273,12 +305,13 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		infoEl.innerHTML = `
 			<p>💡 提示：</p>
 			<ul>
-				<li>需要安装 <strong>Full Calendar Remastered</strong> 插件</li>
-				<li>番茄钟会在选定的日历中实时显示</li>
-				<li>多设备通过 iCloud/Syncthing 同步 vault 后可查看</li>
+				<li><strong>iCloud 用户</strong>：前往 appleid.apple.com 生成应用专用密码</li>
+				<li>日历路径可以在 CalDAV 客户端或 FCR 设置中找到</li>
+				<li>支持 iCloud、Google Calendar、Fastmail 等 CalDAV 服务</li>
 			</ul>
 		`;
 	}
+
 
 	/**
 	 * Create Notification Settings Section
@@ -305,37 +338,5 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 					this.plugin.settings.notificationSound = value;
 					await this.plugin.saveSettings();
 				}));
-	}
-
-	/**
-	 * Create Sync Settings Section
-	 */
-	private createSyncSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '🔄 多端同步' });
-
-		new Setting(containerEl)
-			.setName('同步间隔')
-			.setDesc('检查数据文件变化的间隔（秒）')
-			.addSlider(slider => slider
-				.setLimits(1, 60, 1)
-				.setValue(this.plugin.settings.syncInterval)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
-					this.plugin.settings.syncInterval = value;
-					await this.plugin.saveSettings();
-					this.plugin.restartFileSync();
-				}));
-
-		const infoEl = containerEl.createEl('div', {
-			cls: 'setting-item-description info-text'
-		});
-		infoEl.innerHTML = `
-			<p>💡 多端同步说明：</p>
-			<ul>
-				<li>使用 Obsidian 的 iCloud/Syncthing 同步 vault</li>
-				<li>插件会自动检测并同步其他设备的番茄钟状态</li>
-				<li>建议同步间隔设置为 1-5 秒以获得最佳体验</li>
-			</ul>
-		`;
 	}
 }

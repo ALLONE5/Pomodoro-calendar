@@ -1,6 +1,6 @@
 /**
- * Full Calendar Remastered Integration
- * Handles integration with the Full Calendar Remastered plugin
+ * CalDAV Integration
+ * Handles integration with CalDAV servers (iCloud, Google, etc.)
  */
 
 import { App, Notice } from 'obsidian';
@@ -21,88 +21,170 @@ export interface CalendarEvent {
 }
 
 /**
- * Calendar Source Interface
+ * CalDAV Configuration
  */
-export interface CalendarSource {
-	id: string;
-	name: string;
-	color: string;
-	type: string;
+export interface CalDAVConfig {
+	url: string;
+	username: string;
+	password: string;
+	calendarPath: string;
 }
 
 /**
- * Full Calendar Remastered Integration Class
+ * CalDAV Integration Class
  */
 export class CalendarIntegration {
 	private app: App;
-	private fcrPlugin: any | null = null;
+	private config: CalDAVConfig | null = null;
 	private isEnabled = false;
 	private currentEventId: string | null = null;
+	private currentEventPath: string | null = null;
 
 	constructor(app: App) {
 		this.app = app;
 	}
 
 	/**
-	 * Initialize the integration
-	 * Try to find and connect to Full Calendar Remastered plugin
+	 * Initialize the integration with CalDAV config
 	 */
-	async init(): Promise<boolean> {
-		try {
-			// Try to get the FCR plugin instance
-			// @ts-ignore - accessing internal plugin API
-			const fcr = this.app.plugins.plugins['full-calendar-remastered'];
+	init(config: CalDAVConfig): boolean {
+		if (!config.url || !config.username || !config.password || !config.calendarPath) {
+			console.log('CalDAV: Incomplete configuration');
+			return false;
+		}
 
-			if (!fcr) {
-				console.log('Full Calendar Remastered not found');
+		this.config = config;
+		this.isEnabled = true;
+		console.log('✅ CalDAV integration initialized');
+		return true;
+	}
+
+	/**
+	 * Check if integration is available
+	 */
+	isAvailable(): boolean {
+		return this.isEnabled && this.config !== null;
+	}
+
+	/**
+	 * Update configuration
+	 */
+	updateConfig(config: CalDAVConfig): void {
+		if (config.url && config.username && config.password && config.calendarPath) {
+			this.config = config;
+			this.isEnabled = true;
+		} else {
+			this.isEnabled = false;
+		}
+	}
+
+	/**
+	 * Generate ICS (iCalendar) format event data
+	 */
+	private generateICS(event: CalendarEvent): string {
+		const formatDate = (date: Date) => {
+			return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+		};
+
+		const now = new Date();
+		const created = formatDate(now);
+		const dtstamp = formatDate(now);
+
+		return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Pomodoro Calendar//Obsidian//CN
+BEGIN:VEVENT
+UID:${event.id}
+DTSTAMP:${dtstamp}
+CREATED:${created}
+DTSTART:${formatDate(event.start)}
+DTEND:${formatDate(event.end)}
+SUMMARY:${event.title}
+END:VEVENT
+END:VCALENDAR`;
+	}
+
+	/**
+	 * Build full URL for CalDAV request
+	 */
+	private buildEventPath(eventId: string): string {
+		if (!this.config) return '';
+
+		// Sanitize eventId to be URL-safe
+		const safeId = eventId.replace(/[^a-zA-Z0-9-_]/g, '_');
+		const ext = this.config.calendarPath.endsWith('.ics') ? '' : '.ics';
+
+		// Build full URL: baseUrl + calendarPath + eventId.ics
+		const baseUrl = this.config.url.replace(/\/$/, '');
+		const calendarPath = this.config.calendarPath.replace(/^\//, '');
+
+		return `${baseUrl}/${calendarPath}${safeId}${ext}`;
+	}
+
+	/**
+	 * Perform CalDAV PUT request
+	 */
+	private async caldavPut(eventPath: string, icsData: string): Promise<boolean> {
+		if (!this.config) return false;
+
+		try {
+			const auth = btoa(`${this.config.username}:${this.config.password}`);
+
+			const response = await fetch(eventPath, {
+				method: 'PUT',
+				headers: {
+					'Authorization': `Basic ${auth}`,
+					'Content-Type': 'text/calendar; charset=utf-8',
+					'User-Agent': 'ObsidianPomodoro/1.0'
+				},
+				body: icsData
+			});
+
+			if (response.ok || response.status === 201 || response.status === 204) {
+				console.log('CalDAV: Event created/updated successfully');
+				return true;
+			} else {
+				console.error('CalDAV: PUT failed', response.status, response.statusText);
 				return false;
 			}
-
-			this.fcrPlugin = fcr;
-			this.isEnabled = true;
-			new Notice('✅ 已连接到 Full Calendar Remastered');
-			return true;
-
 		} catch (error) {
-			console.error('Failed to initialize calendar integration:', error);
+			console.error('CalDAV: PUT error', error);
 			return false;
 		}
 	}
 
 	/**
-	 * Check if FCR is available
+	 * Perform CalDAV DELETE request
 	 */
-	isAvailable(): boolean {
-		return this.isEnabled && this.fcrPlugin !== null;
-	}
-
-	/**
-	 * Get available calendar sources
-	 */
-	getAvailableCalendars(): CalendarSource[] {
-		if (!this.isAvailable()) {
-			return [];
-		}
+	private async caldavDelete(eventPath: string): Promise<boolean> {
+		if (!this.config) return false;
 
 		try {
-			// @ts-ignore - accessing FCR API
-			const calendars = this.fcrPlugin?.getCalendarSources?.() || [];
+			const auth = btoa(`${this.config.username}:${this.config.password}`);
 
-			return calendars.map((cal: any) => ({
-				id: cal.id || cal.uid,
-				name: cal.title || cal.name,
-				color: cal.color || '#ff6b6b',
-				type: cal.type || 'local'
-			}));
+			const response = await fetch(eventPath, {
+				method: 'DELETE',
+				headers: {
+					'Authorization': `Basic ${auth}`,
+					'User-Agent': 'ObsidianPomodoro/1.0'
+				}
+			});
 
+			if (response.ok || response.status === 204) {
+				console.log('CalDAV: Event deleted successfully');
+				return true;
+			} else {
+				console.error('CalDAV: DELETE failed', response.status, response.statusText);
+				return false;
+			}
 		} catch (error) {
-			console.error('Failed to get calendars:', error);
-			return [];
+			console.error('CalDAV: DELETE error', error);
+			return false;
 		}
 	}
 
 	/**
-	 * Create a pomodoro event in the calendar
+	 * Create a pomodoro event in CalDAV
 	 */
 	async createPomodoroEvent(
 		session: PomodoroSession,
@@ -114,10 +196,21 @@ export class CalendarIntegration {
 
 		try {
 			const event = this.buildPomodoroEvent(session, calendarId);
-			const eventId = await this.addEvent(event);
-			this.currentEventId = eventId;
+			const eventPath = this.buildEventPath(event.id);
+			const icsData = this.generateICS(event);
 
-			return eventId;
+			console.log('CalDAV: Creating event at', eventPath);
+
+			const success = await this.caldavPut(eventPath, icsData);
+
+			if (success) {
+				this.currentEventId = event.id;
+				this.currentEventPath = eventPath;
+				new Notice('📅 已创建日历事件');
+				return event.id;
+			}
+
+			return null;
 
 		} catch (error) {
 			console.error('Failed to create pomodoro event:', error);
@@ -132,7 +225,7 @@ export class CalendarIntegration {
 		session: PomodoroSession,
 		calendarId: string
 	): Promise<boolean> {
-		if (!this.isAvailable() || !this.currentEventId) {
+		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
 			return false;
 		}
 
@@ -144,8 +237,11 @@ export class CalendarIntegration {
 			event.id = this.currentEventId;
 			event.end = endTime;
 
-			await this.updateEvent(event);
-			return true;
+			const icsData = this.generateICS(event);
+
+			console.log('CalDAV: Updating event at', this.currentEventPath);
+
+			return await this.caldavPut(this.currentEventPath, icsData);
 
 		} catch (error) {
 			console.error('Failed to update pomodoro event:', error);
@@ -157,7 +253,7 @@ export class CalendarIntegration {
 	 * Complete the pomodoro event
 	 */
 	async completePomodoroEvent(session: PomodoroSession, calendarId: string): Promise<boolean> {
-		if (!this.isAvailable() || !this.currentEventId) {
+		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
 			return false;
 		}
 
@@ -165,13 +261,20 @@ export class CalendarIntegration {
 			const event = this.buildPomodoroEvent(session, calendarId);
 			event.id = this.currentEventId;
 			event.end = new Date(); // Set end time to now
+			event.title = `✅ ${event.title}`; // Mark as completed
 
-			// Update title to show completion
-			event.title = `✅ ${event.title}`;
+			const icsData = this.generateICS(event);
 
-			await this.updateEvent(event);
-			this.currentEventId = null;
-			return true;
+			console.log('CalDAV: Completing event at', this.currentEventPath);
+
+			const success = await this.caldavPut(this.currentEventPath, icsData);
+
+			if (success) {
+				this.currentEventId = null;
+				this.currentEventPath = null;
+			}
+
+			return success;
 
 		} catch (error) {
 			console.error('Failed to complete pomodoro event:', error);
@@ -183,14 +286,21 @@ export class CalendarIntegration {
 	 * Cancel/delete the pomodoro event
 	 */
 	async cancelPomodoroEvent(): Promise<boolean> {
-		if (!this.isAvailable() || !this.currentEventId) {
+		if (!this.isAvailable() || !this.currentEventPath) {
 			return false;
 		}
 
 		try {
-			await this.deleteEvent(this.currentEventId);
-			this.currentEventId = null;
-			return true;
+			console.log('CalDAV: Deleting event at', this.currentEventPath);
+
+			const success = await this.caldavDelete(this.currentEventPath);
+
+			if (success) {
+				this.currentEventId = null;
+				this.currentEventPath = null;
+			}
+
+			return success;
 
 		} catch (error) {
 			console.error('Failed to cancel pomodoro event:', error);
@@ -232,113 +342,6 @@ export class CalendarIntegration {
 	}
 
 	/**
-	 * Add an event to the calendar
-	 */
-	private async addEvent(event: CalendarEvent): Promise<string | null> {
-		if (!this.fcrPlugin) return null;
-
-		try {
-			// @ts-ignore - FCR API
-			const api = this.fcrPlugin?.api;
-
-			if (!api) {
-				// Try alternative method - creating event directly
-				// @ts-ignore
-				return await this.fcrPlugin?.addEvent?.(event);
-			}
-
-			// Try using the API
-			// @ts-ignore
-			return await api.addEvent(event);
-
-		} catch (error) {
-			console.error('Failed to add event via FCR API:', error);
-
-			// Fallback: Try to write directly to calendar data
-			return await this.fallbackAddEvent(event);
-		}
-	}
-
-	/**
-	 * Update an existing event
-	 */
-	private async updateEvent(event: CalendarEvent): Promise<void> {
-		if (!this.fcrPlugin) return;
-
-		try {
-			// @ts-ignore - FCR API
-			const api = this.fcrPlugin?.api;
-
-			if (!api) {
-				// Try alternative method
-				// @ts-ignore
-				return await this.fcrPlugin?.updateEvent?.(event);
-			}
-
-			// @ts-ignore
-			await api.updateEvent(event);
-
-		} catch (error) {
-			console.error('Failed to update event:', error);
-		}
-	}
-
-	/**
-	 * Delete an event
-	 */
-	private async deleteEvent(eventId: string): Promise<void> {
-		if (!this.fcrPlugin) return;
-
-		try {
-			// @ts-ignore - FCR API
-			const api = this.fcrPlugin?.api;
-
-			if (!api) {
-				// Try alternative method
-				// @ts-ignore
-				return await this.fcrPlugin?.removeEvent?.(eventId);
-			}
-
-			// @ts-ignore
-			await api.removeEvent(eventId);
-
-		} catch (error) {
-			console.error('Failed to delete event:', error);
-		}
-	}
-
-	/**
-	 * Fallback method for adding events when API is not available
-	 * This writes directly to the calendar data files
-	 */
-	private async fallbackAddEvent(event: CalendarEvent): Promise<string | null> {
-		try {
-			// Get the vault adapter
-			const vault = this.app.vault;
-
-			// Create event data structure
-			const eventData = {
-				uid: event.id,
-				title: event.title,
-				start: event.start.toISOString(),
-				end: event.end.toISOString(),
-				allDay: event.allDay || false
-			};
-
-			// Try to find the calendar file
-			// This is a simplified approach - real implementation would need
-			// to understand FCR's file structure
-			console.log('Fallback add event:', eventData);
-
-			return event.id;
-
-		} catch (error) {
-			console.error('Fallback add event failed:', error);
-			return null;
-		}
-	}
-
-	/**
 	 * Get the current active event ID
 	 */
 	getCurrentEventId(): string | null {
@@ -349,8 +352,9 @@ export class CalendarIntegration {
 	 * Clean up resources
 	 */
 	destroy(): void {
-		this.fcrPlugin = null;
+		this.config = null;
 		this.isEnabled = false;
 		this.currentEventId = null;
+		this.currentEventPath = null;
 	}
 }

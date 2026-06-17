@@ -71,6 +71,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		this.animatedBar?.updateStyle(this.settings.progressBarStyle);
 		this.animatedBar?.updateDirection(this.settings.progressDirection || 'left-to-right');
 		this.animatedBar?.setAnimationsEnabled(this.settings.showAnimations);
+		this.animatedBar?.setPomodoroDuration(this.settings.pomodoroDuration * 60);
 
 		// Register settings tab
 		this.addSettingTab(new PomodoroSettingsTab(this.app, this));
@@ -83,7 +84,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 		// Initialize calendar integration if enabled
 		if (this.settings.enableCalendarIntegration) {
-			await this.initCalendarIntegration();
+			this.initCalendarIntegration();
 		}
 
 		// Register for external data sync
@@ -142,8 +143,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-coin-track { position: absolute; bottom: 4px; left: 12px; right: 12px; height: 12px; background: transparent; border-radius: 6px; z-index: 7; pointer-events: none; }
 	.pomodoro-track-coin { position: absolute; font-size: 13px; opacity: 0.8; color: var(--text-normal, #ddd); transform: translate(-50%, -50%); pointer-events: none; }
 	.pomodoro-character { position: absolute; bottom: 4px; left: 0; right: 0; height: 20px; z-index: 25; pointer-events: none; }
-	.pomodoro-character-white { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)); transition: left 0.3s ease; }
-	.pomodoro-character-gold { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #ffd700; opacity: 0; transition: left 0.3s ease, opacity 0.3s ease; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
+	.pomodoro-character-white { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: var(--text-muted, #888); filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)); transition: left 0.3s ease; }
+	.pomodoro-character-gold { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: var(--text-accent, #ff6b6b); opacity: 0; transition: left 0.3s ease, opacity 0.3s ease; filter: drop-shadow(0 0 8px var(--text-accent, #ff6b6b)); }
 	.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-white, .pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-gold { animation: character-bounce 0.5s ease-in-out infinite; }
 	@keyframes character-bounce { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-3px); } }
 	.pomodoro-progress-text { position: absolute; top: 8px; left: 12px; right: 12px; display: flex; align-items: center; gap: 12px; font-family: var(--font-monospace, monospace); pointer-events: none; justify-content: flex-end; }
@@ -345,6 +346,9 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			case 'cancel':
 				this.cancelPomodoro();
 				break;
+			case 'skip':
+				this.skipPomodoro();
+				break;
 			case 'menu':
 				// Could open a settings menu here
 				break;
@@ -354,11 +358,18 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	/**
 	 * Initialize calendar integration
 	 */
-	async initCalendarIntegration(): Promise<boolean> {
-		const success = await this.calendarIntegration.init();
+	initCalendarIntegration(): boolean {
+		const config = {
+			url: this.settings.caldavUrl,
+			username: this.settings.caldavUsername,
+			password: this.settings.caldavPassword,
+			calendarPath: this.settings.caldavCalendarPath
+		};
+
+		const success = this.calendarIntegration.init(config);
 
 		if (success) {
-			new Notice('✅ 已连接到 Full Calendar Remastered');
+			new Notice('✅ CalDAV 集成已启用');
 		}
 
 		return success;
@@ -418,14 +429,19 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 		// Create calendar event
 		if (this.settings.enableCalendarIntegration && this.settings.defaultCalendarId) {
+			console.log('Creating calendar event with calendarId:', this.settings.defaultCalendarId);
 			this.calendarIntegration.createPomodoroEvent(
 				session,
 				this.settings.defaultCalendarId
 			).then((eventId) => {
 				if (eventId) {
 					console.log('Created calendar event:', eventId);
+				} else {
+					console.log('Failed to create calendar event');
 				}
 			});
+		} else {
+			console.log('Calendar event not created. Integration enabled:', this.settings.enableCalendarIntegration, 'Calendar ID:', this.settings.defaultCalendarId);
 		}
 
 		// Save to data store
@@ -550,6 +566,41 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	}
 
 	/**
+	 * Skip the current session
+	 */
+	skipPomodoro(): void {
+		const session = this.pomodoroTimer.getSession();
+		if (!session) return;
+
+		// Determine next phase based on current session type
+		if (session.type === 'pomodoro') {
+			// Skip pomodoro and go to break (without counting as completed)
+			this.pomodoroTimer.cancel();
+			// Start break after a short delay
+			setTimeout(() => {
+				const breakType = this.pomodoroTimer.getTotalCompletedCount() >= this.settings.longBreakInterval ? 'longBreak' : 'shortBreak';
+				this.startBreak(breakType);
+			}, 100);
+		} else if (session.type === 'shortBreak' || session.type === 'longBreak') {
+			// Skip break and go to next pomodoro
+			this.pomodoroTimer.cancel();
+			// Start next pomodoro after a short delay
+			setTimeout(() => {
+				this.startPomodoro();
+			}, 100);
+		}
+
+		if (this.settings.showNotifications) {
+			new Notice('⏭ 已跳过');
+		}
+
+		// Cancel calendar event for current session
+		if (this.settings.enableCalendarIntegration) {
+			this.calendarIntegration.cancelPomodoroEvent();
+		}
+	}
+
+	/**
 	 * Pomodoro timer callbacks
 	 */
 	private onPomodoroStart(session: PomodoroSession): void {
@@ -599,23 +650,30 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Clear from data store
 		this.dataStore.saveCurrentSession(null);
 
-		// Auto-hide floating bar after a delay
+		// Reset to idle state after completion animation
 		setTimeout(() => {
 			const currentSession = this.pomodoroTimer.getSession();
 			if (!currentSession) {
-				this.animatedBar?.hide();
+				// Update with null to reset to idle state
+				this.animatedBar?.update(null);
+				// Keep the bar visible with completed count
+				this.animatedBar?.show();
 			}
-		}, 3000);
+		}, 1000);
 
-		// Auto-start next if enabled
-		if (session.type === 'pomodoro' && this.settings.autoStartBreak) {
-			setTimeout(() => {
-				this.startBreak('shortBreak');
-			}, 1000);
-		} else if ((session.type === 'shortBreak' || session.type === 'longBreak') && this.settings.autoStartPomodoro) {
-			setTimeout(() => {
-				this.startPomodoro();
-			}, 1000);
+		// Auto-start next if enabled (only for natural completion, not manual)
+		const wasManual = (session as any).manuallyCompleted !== false;
+		if (!wasManual) {
+			// Only auto-start if it was a natural completion
+			if (session.type === 'pomodoro' && this.settings.autoStartBreak) {
+				setTimeout(() => {
+					this.startBreak('shortBreak');
+				}, 1000);
+			} else if ((session.type === 'shortBreak' || session.type === 'longBreak') && this.settings.autoStartPomodoro) {
+				setTimeout(() => {
+					this.startPomodoro();
+				}, 1000);
+			}
 		}
 	}
 
@@ -683,21 +741,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	}
 
 	/**
-	 * Restart file sync (called from settings)
-	 */
-	restartFileSync(): void {
-		// Data store handles sync interval internally
-		console.log('File sync restarted with interval:', this.settings.syncInterval);
-	}
-
-	/**
-	 * Get available calendars for settings
-	 */
-	getAvailableCalendars() {
-		return this.calendarIntegration.getAvailableCalendars();
-	}
-
-	/**
 	 * Play notification sound
 	 */
 	private playNotificationSound(): void {
@@ -716,5 +759,10 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 */
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+
+		// Update calendar integration if enabled
+		if (this.settings.enableCalendarIntegration) {
+			this.initCalendarIntegration();
+		}
 	}
 }

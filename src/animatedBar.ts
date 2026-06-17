@@ -46,6 +46,8 @@ export class PomodoroAnimatedBar {
 	private animationFrame: number | null = null;
 	private config: AnimationConfig;
 	private actionCallback: ((action: string) => void) | null = null;
+	private pomodoroDuration: number = 25 * 60;
+	private completedCount: number = 0;
 
 	constructor(app: App, config?: Partial<AnimationConfig>) {
 		this.app = app;
@@ -99,6 +101,16 @@ export class PomodoroAnimatedBar {
 			this.emitAction('complete');
 		});
 
+			// Skip button
+			const skipBtn = controlsEl.createEl('button', {
+				cls: 'pomodoro-animated-btn',
+				text: '⏭'
+			});
+			skipBtn.setAttribute('aria-label', '跳过本次');
+			skipBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				this.emitAction('skip');
+			});
 		// Cancel button
 		const cancelBtn = controlsEl.createEl('button', {
 			cls: 'pomodoro-animated-btn',
@@ -166,7 +178,7 @@ export class PomodoroAnimatedBar {
 
 		this.timeDisplay = this.timeClickableArea.createEl('span', {
 			cls: 'pomodoro-time-display',
-			text: '25:00'
+			text: this.formatTime(this.pomodoroDuration)
 		});
 
 		this.percentDisplay = this.timeClickableArea.createEl('span', {
@@ -198,8 +210,9 @@ export class PomodoroAnimatedBar {
 			const itemSymbol = items[i % items.length];
 			coin.textContent = itemSymbol;
 
-			// Position along the track
-			const position = (i / 9) * 100;
+			// Position along the track with margin on edges
+			const margin = 10; // 10% margin on each side
+			const position = margin + (i / 9) * (100 - 2 * margin);
 			coin.style.left = `${position}%`;
 			coin.style.top = '50%';
 		}
@@ -262,12 +275,13 @@ export class PomodoroAnimatedBar {
 		if (!this.containerEl || this.isDestroyed) return;
 
 		if (!session) {
-			this.updateDisplay(0, 25 * 60, 'idle');
+			this.updateDisplay(0, this.pomodoroDuration, 'idle');
 			return;
 		}
 
 		const progress = 1 - (session.remaining / session.duration);
 		this.updateDisplay(progress, session.remaining, session.state);
+			this.updateCompletedCount(session.completedCount);
 	}
 
 	/**
@@ -341,6 +355,38 @@ export class PomodoroAnimatedBar {
 	}
 
 	/**
+	 * Format seconds to MM:SS
+	 */
+	private formatTime(seconds: number): string {
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+	}
+
+	/**
+	 * Set pomodoro duration
+	 */
+	setPomodoroDuration(duration: number): void {
+		this.pomodoroDuration = duration;
+		// Update the initial display if no session is active
+		if (this.timeDisplay) {
+			this.timeDisplay.textContent = this.formatTime(this.pomodoroDuration);
+		}
+	}
+
+
+	/**
+	 * Update completed count display
+	 */
+	updateCompletedCount(count: number): void {
+		this.completedCount = count;
+		if (this.totalDurationDisplay) {
+			this.totalDurationDisplay.textContent = `🍅 x${count}`;
+		}
+	}
+
+
+	/**
 	 * Show completion animation
 	 */
 	showCompletionAnimation(): void {
@@ -353,7 +399,7 @@ export class PomodoroAnimatedBar {
 
 		setTimeout(() => {
 			this.containerEl?.removeClass('pomodoro-completed');
-		}, 3000);
+		}, 1000);
 	}
 
 	/**
