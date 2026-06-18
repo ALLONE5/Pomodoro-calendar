@@ -200,6 +200,7 @@ export class PomodoroTimer {
 
 		// Add manual flag to session
 		(completedSession as any).manuallyCompleted = this.manuallyCompleted;
+			console.log('Complete called - manual:', this.manuallyCompleted, 'session:', completedSession);
 		
 		this.callbacks.onComplete?.(completedSession);
 		this.session = null;
