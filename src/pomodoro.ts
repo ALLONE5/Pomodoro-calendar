@@ -114,10 +114,10 @@ export class PomodoroTimer {
 			completedCount: this.totalCompletedCount
 		};
 
-			// Record work session start time only on first manual start
-			if (sessionType === 'pomodoro' && !this.workSessionStartTime) {
-				this.workSessionStartTime = new Date();
-			}
+		// Record work session start time only on first manual start
+		if (sessionType === 'pomodoro' && !this.workSessionStartTime) {
+			this.workSessionStartTime = new Date();
+		}
 		this.startTimer();
 		this.callbacks.onStart?.(this.session);
 
@@ -166,7 +166,7 @@ export class PomodoroTimer {
 		this.stopTimer();
 		this.callbacks.onCancel?.(canceledSession);
 		this.session = null;
-			this.workSessionStartTime = null; // Reset work session start time
+		this.workSessionStartTime = null; // Reset work session start time
 
 		return canceledSession;
 	}
@@ -178,7 +178,7 @@ export class PomodoroTimer {
 		if (!this.session) {
 			return null;
 		}
-		
+
 		// Mark if this was a manual completion
 		this.manuallyCompleted = manual;
 
@@ -196,14 +196,17 @@ export class PomodoroTimer {
 
 		// Add manual flag to session
 		(completedSession as any).manuallyCompleted = this.manuallyCompleted;
-			// Add work session start time if available
-			(completedSession as any).workSessionStartTime = this.workSessionStartTime;
-			// Reset work session start time on manual completion
-			if (this.manuallyCompleted) {
+		// Add work session start time if available
+		(completedSession as any).workSessionStartTime = this.workSessionStartTime;
+
+		// Reset work session start time and count on manual completion BEFORE callback
+		if (this.manuallyCompleted) {
 			this.workSessionStartTime = null;
-				this.totalCompletedCount = 0; // Reset completed count on manual completion
-			}
-		
+			this.totalCompletedCount = 0; // Reset completed count on manual completion
+			// Update the session's completedCount to reflect the reset
+			completedSession.completedCount = 0;
+		}
+
 		this.callbacks.onComplete?.(completedSession);
 		this.session = null;
 
