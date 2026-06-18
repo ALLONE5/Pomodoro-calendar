@@ -204,8 +204,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-animated-bar.pomodoro-visible { opacity: 1; }
 	.pomodoro-animated-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: transparent; margin: 0 8px; pointer-events: none; }
 	.pomodoro-animated-controls { position: absolute; bottom: 100%; right: 12px; margin-bottom: -26px; transform: translateY(0); display: flex; gap: 6px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-			.pomodoro-animated-bar:has(.pomodoro-time-clickable:hover) .pomodoro-animated-controls,
-		.pomodoro-animated-bar:hover .pomodoro-animated-controls { opacity: 1; pointer-events: auto; }
+			.pomodoro-animated-bar:has(.pomodoro-time-clickable:hover) .pomodoro-animated-controls { opacity: 1; pointer-events: auto; }
 .pomodoro-direction-rtl .pomodoro-animated-controls { right: auto; left: 12px; margin-bottom: -26px; }
 	.pomodoro-action-btn { opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
 	.pomodoro-animated-bar:hover .pomodoro-action-btn { opacity: 1; pointer-events: auto; }
