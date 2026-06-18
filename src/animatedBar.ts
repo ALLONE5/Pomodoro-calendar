@@ -381,7 +381,7 @@ export class PomodoroAnimatedBar {
 	updateCompletedCount(session: PomodoroSession | null): void {
 		this.completedCount = session ? session.completedCount : 0;
 		if (this.totalDurationDisplay) {
-			const emoji = session?.type === 'pomodoro' ? '🍅' :
+			const emoji = (!session || session.completedCount === 0) ? '🍅' :
 				session?.type === 'shortBreak' ? '☕' : '🌴';
 			this.totalDurationDisplay.textContent = `${emoji} x${session ? session.completedCount : 0}`;
 		}
