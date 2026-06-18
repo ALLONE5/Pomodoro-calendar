@@ -45,6 +45,7 @@ export class PomodoroTimer {
 	private callbacks: PomodoroEventCallbacks = {};
 	private totalCompletedCount: number = 0;
 	private manuallyCompleted: boolean = false;
+	private workSessionStartTime: Date | null = null;
 
 	constructor(settings: PomodoroSettings, callbacks?: PomodoroEventCallbacks) {
 		this.settings = settings;
@@ -123,6 +124,10 @@ export class PomodoroTimer {
 			completedCount: this.totalCompletedCount
 		};
 
+			// Record work session start time only on first manual start
+			if (sessionType === 'pomodoro' && !this.workSessionStartTime) {
+				this.workSessionStartTime = new Date();
+			}
 			console.log('Pomodoro started - type:', sessionType, 'startTime:', this.session.startTime);
 		this.startTimer();
 		this.callbacks.onStart?.(this.session);
@@ -172,6 +177,7 @@ export class PomodoroTimer {
 		this.stopTimer();
 		this.callbacks.onCancel?.(canceledSession);
 		this.session = null;
+			this.workSessionStartTime = null; // Reset work session start time
 
 		return canceledSession;
 	}
@@ -201,6 +207,8 @@ export class PomodoroTimer {
 
 		// Add manual flag to session
 		(completedSession as any).manuallyCompleted = this.manuallyCompleted;
+			// Add work session start time if available
+			(completedSession as any).workSessionStartTime = this.workSessionStartTime;
 		
 		this.callbacks.onComplete?.(completedSession);
 		this.session = null;

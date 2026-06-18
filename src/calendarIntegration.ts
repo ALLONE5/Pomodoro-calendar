@@ -308,7 +308,7 @@ END:VCALENDAR`;
 	 */
 	private buildPomodoroEvent(session: PomodoroSession): CalendarEvent {
 			console.log('buildPomodoroEvent - startTime:', session.startTime, 'endTime:', session.endTime, 'duration:', session.duration);
-		const startTime = session.startTime || new Date();
+		const startTime = (session as any).workSessionStartTime || session.startTime || new Date();
 		const endTime = session.endTime ? new Date(session.endTime) : new Date(startTime);
 		if (!session.endTime) {
 			endTime.setSeconds(endTime.getSeconds() + session.duration);
