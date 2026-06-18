@@ -308,16 +308,12 @@ END:VCALENDAR`;
 			endTime.setSeconds(endTime.getSeconds() + session.duration);
 		}
 
-		const emoji = session.type === 'pomodoro' ? '🍅' :
-		              session.type === 'shortBreak' ? '☕' : '🌴';
+		const emoji = '🍅';
 
-		const title = session.type === 'pomodoro' ?
-		              `${emoji} 番茄钟专注` :
-		              `${emoji} ${session.type === 'shortBreak' ? '小休' : '长休'}`;
+		const title = `${emoji} 番茄钟专注`;
 
-		// Color based on type
-		const color = session.type === 'pomodoro' ? '#ff6b6b' :
-		             session.type === 'shortBreak' ? '#51cf66' : '#339af0';
+		// Use consistent color for all completed pomodoros
+		const color = '#ff6b6b';
 
 		return {
 			id: session.id,
