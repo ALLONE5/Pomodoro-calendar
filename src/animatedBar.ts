@@ -281,7 +281,7 @@ export class PomodoroAnimatedBar {
 
 		const progress = 1 - (session.remaining / session.duration);
 		this.updateDisplay(progress, session.remaining, session.state);
-			this.updateCompletedCount(session.completedCount);
+			this.updateCompletedCount(session);
 	}
 
 	/**
@@ -378,10 +378,12 @@ export class PomodoroAnimatedBar {
 	/**
 	 * Update completed count display
 	 */
-	updateCompletedCount(count: number): void {
-		this.completedCount = count;
+	updateCompletedCount(session: PomodoroSession | null): void {
+		this.completedCount = session ? session.completedCount : 0;
 		if (this.totalDurationDisplay) {
-			this.totalDurationDisplay.textContent = `🍅 x${count}`;
+			const emoji = session?.type === 'pomodoro' ? '🍅' :
+				session?.type === 'shortBreak' ? '☕' : '🌴';
+			this.totalDurationDisplay.textContent = `${emoji} x${session ? session.completedCount : 0}`;
 		}
 	}
 
