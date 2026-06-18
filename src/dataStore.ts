@@ -12,7 +12,6 @@ import { PomodoroSession, PomodoroType } from './pomodoro';
 export interface StoredData {
 	currentSession: StoredSession | null;
 	settings: Record<string, any>;
-	statistics: Statistics;
 	version: string;
 	lastModified: number;
 	deviceId: string;
@@ -29,13 +28,6 @@ export interface StoredSession {
 	completedCount: number;
 }
 
-export interface Statistics {
-	totalPomodoros: number;
-	totalFocusTime: number;    // in seconds
-	totalBreakTime: number;    // in seconds
-	streak: number;            // consecutive days
-	lastPomodoroDate: string | null;
-}
 
 /**
  * Data Store Class
@@ -85,13 +77,6 @@ export class PomodoroDataStore {
 		return {
 			currentSession: null,
 			settings: {},
-			statistics: {
-				totalPomodoros: 0,
-				totalFocusTime: 0,
-				totalBreakTime: 0,
-				streak: 0,
-				lastPomodoroDate: null
-			},
 			version: '1.0.0',
 			lastModified: Date.now(),
 			deviceId: this.deviceId
@@ -124,10 +109,6 @@ export class PomodoroDataStore {
 			this.data = parsed;
 
 			// Validate data structure
-			if (!this.data.statistics) {
-				this.data.statistics = this.createEmptyData().statistics;
-			}
-
 		} catch (error) {
 			console.error('Failed to load data file:', error);
 			this.data = this.createEmptyData();
@@ -310,36 +291,6 @@ export class PomodoroDataStore {
 
 	/**
 	 * Record completed pomodoro
-	 */
-	async recordCompletedPomodoro(duration: number): Promise<void> {
-		this.data.statistics.totalPomodoros++;
-		this.data.statistics.totalFocusTime += duration;
-
-		// Update streak
-		const today = new Date().toISOString().split('T')[0];
-		if (this.data.statistics.lastPomodoroDate !== today) {
-			const lastDate = this.data.statistics.lastPomodoroDate;
-			this.data.statistics.lastPomodoroDate = today;
-
-			// Check if consecutive day
-			if (lastDate) {
-				const last = new Date(lastDate);
-				const now = new Date(today);
-				const diffDays = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
-
-				if (diffDays === 1) {
-					this.data.statistics.streak++;
-				} else if (diffDays > 1) {
-					this.data.statistics.streak = 1;
-				}
-			} else {
-				this.data.statistics.streak = 1;
-			}
-		}
-
-		await this.saveToFile();
-	}
-
 	/**
 	 * Register callback for external changes
 	 */

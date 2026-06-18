@@ -682,11 +682,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		}
 
 
-		// Update statistics - count pomodoro sessions or any manual completion
-		if (session.type === 'pomodoro' || wasManual) {
-			this.dataStore.recordCompletedPomodoro(session.duration);
-		}
-
 		// Clear from data store
 		this.dataStore.saveCurrentSession(null);
 
