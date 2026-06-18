@@ -211,6 +211,7 @@ export class PomodoroTimer {
 			// Reset work session start time on manual completion
 			if (this.manuallyCompleted) {
 			this.workSessionStartTime = null;
+				this.totalCompletedCount = 0; // Reset completed count on manual completion
 			}
 		
 		this.callbacks.onComplete?.(completedSession);
