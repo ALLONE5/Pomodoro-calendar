@@ -653,8 +653,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	 */
 
 	private async onPomodoroComplete(session: PomodoroSession): Promise<void> {
-		console.log('onPomodoroComplete - wasManual:', (session as any).manuallyCompleted, 'type:', session.type);
-		console.log('Pomodoro completed:', session);
 
 		// Update floating bar with completed session
 		this.animatedBar?.update(session);
