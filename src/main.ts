@@ -676,8 +676,8 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Check if this was a manual completion
 		const wasManual = (session as any).manuallyCompleted !== false;
 
-		// Create calendar event only for manually completed pomodoros
-		if (this.settings.enableCalendarIntegration && wasManual && session.type === 'pomodoro') {
+		// Create calendar event for any manually completed session
+		if (this.settings.enableCalendarIntegration && wasManual) {
 			const modal = new InputModal(this.app, '留空使用默认标题', '');
 			const customTitle = await modal.getInput();
 			this.calendarIntegration.createPomodoroEvent(session, customTitle);
