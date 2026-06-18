@@ -27,8 +27,6 @@ export interface StoredSession {
 	duration: number;
 	remaining: number;
 	completedCount: number;
-	calendarId: string | null;
-	eventId: string | null;
 }
 
 export interface Statistics {
@@ -280,7 +278,7 @@ export class PomodoroDataStore {
 	/**
 	 * Save current session
 	 */
-	async saveCurrentSession(session: PomodoroSession | null, calendarId: string | null = null): Promise<void> {
+	async saveCurrentSession(session: PomodoroSession | null, calendarId?: string | null): Promise<void> {
 		if (!session) {
 			this.data.currentSession = null;
 		} else {
@@ -293,8 +291,6 @@ export class PomodoroDataStore {
 				duration: session.duration,
 				remaining: session.remaining,
 				completedCount: session.completedCount,
-				calendarId,
-				eventId: null
 			};
 		}
 
@@ -311,35 +307,6 @@ export class PomodoroDataStore {
 		}
 	}
 
-	/**
-	 * Get settings
-	 */
-	getSettings(): Record<string, any> {
-		return this.data.settings;
-	}
-
-	/**
-	 * Save settings
-	 */
-	async saveSettings(settings: Record<string, any>): Promise<void> {
-		this.data.settings = settings;
-		await this.saveToFile();
-	}
-
-	/**
-	 * Get statistics
-	 */
-	getStatistics(): Statistics {
-		return this.data.statistics;
-	}
-
-	/**
-	 * Update statistics
-	 */
-	async updateStatistics(stats: Partial<Statistics>): Promise<void> {
-		this.data.statistics = { ...this.data.statistics, ...stats };
-		await this.saveToFile();
-	}
 
 	/**
 	 * Record completed pomodoro

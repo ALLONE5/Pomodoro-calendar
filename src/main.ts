@@ -3,13 +3,12 @@
  * Main Plugin Entry Point
  */
 
-import { Plugin, Notice, addIcon, Modal } from 'obsidian';
+import { Plugin, Notice, addIcon, Modal, App } from 'obsidian';
 import { PomodoroTimer, PomodoroSession, PomodoroType } from './pomodoro';
 import { PomodoroAnimatedBar } from './animatedBar';
 import { PomodoroSettingsTab, PomodoroCalendarSettings, DEFAULT_SETTINGS } from './settings';
 import { CalendarIntegration } from './calendarIntegration';
 import { PomodoroDataStore, StoredData } from './dataStore';
-import { App } from 'obsidian';
 
 /**
  * Simple Input Modal for Obsidian
@@ -124,11 +123,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 		// Initialize pomodoro timer
 		this.pomodoroTimer = new PomodoroTimer(this.settings, {
-			onStart: this.onPomodoroStart.bind(this),
-			onPause: this.onPomodoroPause.bind(this),
-			onResume: this.onPomodoroResume.bind(this),
 			onComplete: this.onPomodoroComplete.bind(this),
-			onCancel: this.onPomodoroCancel.bind(this),
 			onTick: this.onPomodoroTick.bind(this)
 		});
 
@@ -476,10 +471,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 				this.animatedBar?.show();
 				this.animatedBar?.update(session);
 
-				// Update calendar if event exists
-				if (storedSession.eventId && storedSession.calendarId) {
-					// Restore the calendar event reference
-				}
 
 				this.updateRibbonIcon();
 				new Notice('🔄 已恢复之前的番茄钟会话');
@@ -508,7 +499,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 
 		// Save to data store
-		this.dataStore.saveCurrentSession(session, null);
+		this.dataStore.saveCurrentSession(session);
 	}
 
 	/**
@@ -529,7 +520,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 
 
 		// Save to data store
-		this.dataStore.saveCurrentSession(session, null);
+		this.dataStore.saveCurrentSession(session);
 	}
 
 	/**
@@ -548,7 +539,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Save to data store
 		const session = this.pomodoroTimer.getSession();
 		if (session) {
-			this.dataStore.saveCurrentSession(session, null);
+			this.dataStore.saveCurrentSession(session);
 		}
 	}
 
@@ -568,7 +559,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		// Save to data store
 		const session = this.pomodoroTimer.getSession();
 		if (session) {
-			this.dataStore.saveCurrentSession(session, null);
+			this.dataStore.saveCurrentSession(session);
 		}
 	}
 
@@ -659,17 +650,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	/**
 	 * Pomodoro timer callbacks
 	 */
-	private onPomodoroStart(session: PomodoroSession): void {
-		console.log('Pomodoro started:', session);
-	}
-
-	private onPomodoroPause(session: PomodoroSession): void {
-		console.log('Pomodoro paused:', session);
-	}
-
-	private onPomodoroResume(session: PomodoroSession): void {
-		console.log('Pomodoro resumed:', session);
-	}
 
 	private async onPomodoroComplete(session: PomodoroSession): Promise<void> {
 		console.log('Pomodoro completed:', session);
@@ -736,27 +716,18 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		}
 	}
 
-	private onPomodoroCancel(session: PomodoroSession): void {
-		console.log('Pomodoro cancelled:', session);
-	}
+
 
 	private onPomodoroTick(remaining: number, total: number): void {
 		// Update floating bar
 		this.animatedBar?.update(this.pomodoroTimer.getSession());
-
-		// Update calendar event every 5 seconds
-		if (this.settings.enableCalendarIntegration && remaining % 5 === 0) {
-			const session = this.pomodoroTimer.getSession();
-			if (session) {
-				this.calendarIntegration.updatePomodoroEvent(session);
-			}
-		}
 
 		// Save remaining time to data store periodically
 		if (remaining % 10 === 0) {
 			this.dataStore.updateSessionRemaining(remaining);
 		}
 	}
+
 
 	/**
 	 * Handle external data sync

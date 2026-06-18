@@ -80,15 +80,27 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		// Pomodoro Duration
 		new Setting(containerEl)
 			.setName('番茄钟时长')
-			.setDesc('单个番茄钟的持续时间（分钟）')
-			.addSlider(slider => slider
-				.setLimits(1, 60, 1)
-				.setValue(this.plugin.settings.pomodoroDuration)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
+			.setDesc('单个番茄钟的持续时间（分钟，1-60）')
+			.addText(text => {
+				text.inputEl.type = 'number';
+				text.inputEl.min = '1';
+				text.inputEl.max = '60';
+				text.inputEl.value = this.plugin.settings.pomodoroDuration.toString();
+				text.inputEl.style.width = '60px';
+			})
+			.addButton(button => button
+				.setButtonText('保存')
+				.onClick(async () => {
+					const input = button.buttonEl.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+					const value = parseInt(input.value);
+					if (isNaN(value) || value < 1 || value > 60) {
+						new Notice('请输入 1-60 之间的数字');
+						return;
+					}
 					this.plugin.settings.pomodoroDuration = value;
 					await this.plugin.saveSettings();
-						this.plugin.animatedBar?.setPomodoroDuration(value * 60);
+					this.plugin.animatedBar?.setPomodoroDuration(value * 60);
+					new Notice(`番茄钟时长已设置为 ${value} 分钟`);
 				}))
 			.addExtraButton(button => button
 				.setIcon('reset')
@@ -96,21 +108,33 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				.onClick(async () => {
 					this.plugin.settings.pomodoroDuration = DEFAULT_SETTINGS.pomodoroDuration;
 					await this.plugin.saveSettings();
-						this.plugin.animatedBar?.setPomodoroDuration(DEFAULT_SETTINGS.pomodoroDuration * 60);
+					this.plugin.animatedBar?.setPomodoroDuration(DEFAULT_SETTINGS.pomodoroDuration * 60);
 					this.display();
 				}));
 
 		// Short Break Duration
 		new Setting(containerEl)
 			.setName('短休息时长')
-			.setDesc('番茄钟之间的短休息时间（分钟）')
-			.addSlider(slider => slider
-				.setLimits(1, 30, 1)
-				.setValue(this.plugin.settings.shortBreakDuration)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
+			.setDesc('番茄钟之间的短休息时间（分钟，1-30）')
+			.addText(text => {
+				text.inputEl.type = 'number';
+				text.inputEl.min = '1';
+				text.inputEl.max = '30';
+				text.inputEl.value = this.plugin.settings.shortBreakDuration.toString();
+				text.inputEl.style.width = '60px';
+			})
+			.addButton(button => button
+				.setButtonText('保存')
+				.onClick(async () => {
+					const input = button.buttonEl.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+					const value = parseInt(input.value);
+					if (isNaN(value) || value < 1 || value > 30) {
+						new Notice('请输入 1-30 之间的数字');
+						return;
+					}
 					this.plugin.settings.shortBreakDuration = value;
 					await this.plugin.saveSettings();
+					new Notice(`短休息时长已设置为 ${value} 分钟`);
 				}))
 			.addExtraButton(button => button
 				.setIcon('reset')
@@ -124,14 +148,26 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		// Long Break Duration
 		new Setting(containerEl)
 			.setName('长休息时长')
-			.setDesc('完成一组番茄钟后的长休息时间（分钟）')
-			.addSlider(slider => slider
-				.setLimits(5, 60, 1)
-				.setValue(this.plugin.settings.longBreakDuration)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
+			.setDesc('完成一组番茄钟后的长休息时间（分钟，5-60）')
+			.addText(text => {
+				text.inputEl.type = 'number';
+				text.inputEl.min = '5';
+				text.inputEl.max = '60';
+				text.inputEl.value = this.plugin.settings.longBreakDuration.toString();
+				text.inputEl.style.width = '60px';
+			})
+			.addButton(button => button
+				.setButtonText('保存')
+				.onClick(async () => {
+					const input = button.buttonEl.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+					const value = parseInt(input.value);
+					if (isNaN(value) || value < 5 || value > 60) {
+						new Notice('请输入 5-60 之间的数字');
+						return;
+					}
 					this.plugin.settings.longBreakDuration = value;
 					await this.plugin.saveSettings();
+					new Notice(`长休息时长已设置为 ${value} 分钟`);
 				}))
 			.addExtraButton(button => button
 				.setIcon('reset')
@@ -145,14 +181,34 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		// Long Break Interval
 		new Setting(containerEl)
 			.setName('长休息间隔')
-			.setDesc('完成多少个番茄钟后进入长休息')
-			.addSlider(slider => slider
-				.setLimits(2, 10, 1)
-				.setValue(this.plugin.settings.longBreakInterval)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
+			.setDesc('完成多少个番茄钟后进入长休息（2-10）')
+			.addText(text => {
+				text.inputEl.type = 'number';
+				text.inputEl.min = '2';
+				text.inputEl.max = '10';
+				text.inputEl.value = this.plugin.settings.longBreakInterval.toString();
+				text.inputEl.style.width = '60px';
+			})
+			.addButton(button => button
+				.setButtonText('保存')
+				.onClick(async () => {
+					const input = button.buttonEl.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+					const value = parseInt(input.value);
+					if (isNaN(value) || value < 2 || value > 10) {
+						new Notice('请输入 2-10 之间的数字');
+						return;
+					}
 					this.plugin.settings.longBreakInterval = value;
 					await this.plugin.saveSettings();
+					new Notice(`长休息间隔已设置为 ${value} 个番茄`);
+				}))
+			.addExtraButton(button => button
+				.setIcon('reset')
+				.setTooltip('重置为默认值 (4个)')
+				.onClick(async () => {
+					this.plugin.settings.longBreakInterval = DEFAULT_SETTINGS.longBreakInterval;
+					await this.plugin.saveSettings();
+					this.display();
 				}));
 
 		// Auto Start Settings

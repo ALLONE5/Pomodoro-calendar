@@ -269,66 +269,6 @@ END:VCALENDAR`;
 		}
 	}
 
-	/**
-	 * Update the pomodoro event end time
-	 */
-	async updatePomodoroEvent(session: PomodoroSession): Promise<boolean> {
-		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
-			return false;
-		}
-
-		try {
-			const endTime = new Date(session.startTime!);
-			endTime.setSeconds(endTime.getSeconds() + (session.duration - session.remaining));
-
-			const event = this.buildPomodoroEvent(session);
-			event.id = this.currentEventId;
-			event.end = endTime;
-
-			const icsData = this.generateICS(event);
-
-			console.log('CalDAV: Updating event at', this.currentEventPath);
-
-			return await this.caldavPut(this.currentEventPath, icsData);
-
-		} catch (error) {
-			console.error('Failed to update pomodoro event:', error);
-			return false;
-		}
-	}
-
-	/**
-	 * Complete the pomodoro event
-	 */
-	async completePomodoroEvent(session: PomodoroSession): Promise<boolean> {
-		if (!this.isAvailable() || !this.currentEventId || !this.currentEventPath) {
-			return false;
-		}
-
-		try {
-			const event = this.buildPomodoroEvent(session);
-			event.id = this.currentEventId;
-			event.end = new Date(); // Set end time to now
-			event.title = `✅ ${event.title}`; // Mark as completed
-
-			const icsData = this.generateICS(event);
-
-			console.log('CalDAV: Completing event at', this.currentEventPath);
-
-			const success = await this.caldavPut(this.currentEventPath, icsData);
-
-			if (success) {
-				this.currentEventId = null;
-				this.currentEventPath = null;
-			}
-
-			return success;
-
-		} catch (error) {
-			console.error('Failed to complete pomodoro event:', error);
-			return false;
-		}
-	}
 
 	/**
 	 * Cancel/delete the pomodoro event
