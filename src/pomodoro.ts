@@ -128,7 +128,6 @@ export class PomodoroTimer {
 			if (sessionType === 'pomodoro' && !this.workSessionStartTime) {
 				this.workSessionStartTime = new Date();
 			}
-			console.log('Pomodoro started - type:', sessionType, 'startTime:', this.session.startTime);
 		this.startTimer();
 		this.callbacks.onStart?.(this.session);
 
@@ -272,20 +271,4 @@ export class PomodoroTimer {
 		this.session = null;
 	}
 
-	/**
-	 * Get formatted time string (MM:SS)
-	 */
-	static formatTime(seconds: number): string {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-	}
-
-	/**
-	 * Calculate progress (0-1)
-	 */
-	static getProgress(remaining: number, total: number): number {
-		if (total <= 0) return 0;
-		return 1 - (remaining / total);
-	}
 }

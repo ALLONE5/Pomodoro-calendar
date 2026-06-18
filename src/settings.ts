@@ -362,7 +362,6 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 						url: this.plugin.settings.caldavUrl,
 						username: this.plugin.settings.caldavUsername,
 						password: this.plugin.settings.caldavPassword,
-						calendarPath: '' // Will be extracted from URL
 					};
 
 					// Temporarily init with this config

@@ -307,7 +307,6 @@ END:VCALENDAR`;
 	 * Build a calendar event from a pomodoro session
 	 */
 	private buildPomodoroEvent(session: PomodoroSession): CalendarEvent {
-			console.log('buildPomodoroEvent - startTime:', session.startTime, 'endTime:', session.endTime, 'duration:', session.duration);
 		const startTime = (session as any).workSessionStartTime || session.startTime || new Date();
 		const endTime = session.endTime ? new Date(session.endTime) : new Date(startTime);
 		if (!session.endTime) {
@@ -336,12 +335,6 @@ END:VCALENDAR`;
 		};
 	}
 
-	/**
-	 * Get the current active event ID
-	 */
-	getCurrentEventId(): string | null {
-		return this.currentEventId;
-	}
 
 	/**
 	 * Clean up resources
