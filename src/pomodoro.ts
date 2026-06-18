@@ -92,16 +92,6 @@ export class PomodoroTimer {
 	}
 
 	/**
-	 * Determine next break type
-	 */
-	private getNextBreakType(): PomodoroType {
-		if (this.totalCompletedCount >= this.settings.longBreakInterval) {
-			return 'longBreak';
-		}
-		return 'shortBreak';
-	}
-
-	/**
 	 * Start a new pomodoro session
 	 */
 	start(type?: PomodoroType): PomodoroSession {

@@ -259,7 +259,7 @@ export class PomodoroDataStore {
 	/**
 	 * Save current session
 	 */
-	async saveCurrentSession(session: PomodoroSession | null, calendarId?: string | null): Promise<void> {
+	async saveCurrentSession(session: PomodoroSession | null): Promise<void> {
 		if (!session) {
 			this.data.currentSession = null;
 		} else {
