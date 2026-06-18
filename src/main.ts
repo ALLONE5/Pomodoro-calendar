@@ -203,9 +203,9 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-animated-bar { position: fixed; left: 0; right: 0; bottom: 60px; height: 70px; background: transparent; display: none; flex-direction: column; justify-content: flex-end; z-index: 1000; opacity: 1; transition: opacity 0.3s ease; pointer-events: none; }
 	.pomodoro-animated-bar.pomodoro-visible { opacity: 1; }
 	.pomodoro-animated-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: transparent; margin: 0 8px; pointer-events: none; }
-	.pomodoro-animated-controls { position: absolute; bottom: 100%; right: 50%; transform: translateX(50%); display: flex; gap: 6px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+	.pomodoro-animated-controls { position: absolute; top: 4px; right: 50%; transform: translateX(50%); display: flex; gap: 6px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
 			.pomodoro-animated-bar:hover .pomodoro-animated-controls { opacity: 1; pointer-events: auto; }
-.pomodoro-direction-rtl .pomodoro-animated-controls { right: auto; left: 50%; transform: translateX(-50%); margin-bottom: 4px; }
+.pomodoro-direction-rtl .pomodoro-animated-controls { right: auto; left: 50%; transform: translateX(-50%); }
 	.pomodoro-action-btn { opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
 	.pomodoro-animated-bar:hover .pomodoro-action-btn { opacity: 1; pointer-events: auto; }
 	.pomodoro-animated-btn { width: 28px; height: 28px; font-size: 14px; border-radius: 6px; border: none; background: rgba(42, 42, 42, 0.8); color: var(--text-normal, #ddd); font-weight: bold; cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -221,7 +221,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-character-gold { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 24px; color: var(--text-accent, #ff6b6b); opacity: 0; transition: left 0.3s ease, opacity 0.3s ease; filter: drop-shadow(0 0 8px var(--text-accent, #ff6b6b)); }
 	.pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-white, .pomodoro-animated-bar.pomodoro-state-running .pomodoro-character-gold { animation: character-bounce 0.5s ease-in-out infinite; }
 	@keyframes character-bounce { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-3px); } }
-	.pomodoro-progress-text { position: absolute; top: 8px; left: 12px; right: 12px; display: flex; align-items: center; gap: 12px; font-family: var(--font-monospace, monospace); pointer-events: none; justify-content: flex-end; }
+	.pomodoro-progress-text { position: absolute; top: 36px; left: 12px; right: 12px; display: flex; align-items: center; gap: 12px; font-family: var(--font-monospace, monospace); pointer-events: none; justify-content: flex-end; }
 	.pomodoro-direction-rtl .pomodoro-progress-text { justify-content: flex-start; }
 	.pomodoro-time-clickable { display: flex; align-items: center; gap: 4px; cursor: pointer; pointer-events: auto; transition: opacity 0.2s ease; user-select: none; background: var(--background-secondary, #1e1e1e); padding: 4px 10px; border-radius: 6px; }
 	.pomodoro-time-clickable:hover { opacity: 0.8; }
