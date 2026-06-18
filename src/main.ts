@@ -4,7 +4,7 @@
  */
 
 import { Plugin, Notice, addIcon, Modal, App } from 'obsidian';
-import { PomodoroTimer, PomodoroSession, PomodoroType } from './pomodoro';
+import { PomodoroTimer, PomodoroSession, PomodoroType, getSessionEmoji, getCompletedEmoji } from './pomodoro';
 import { PomodoroAnimatedBar } from './animatedBar';
 import { PomodoroSettingsTab, PomodoroCalendarSettings, DEFAULT_SETTINGS } from './settings';
 import { CalendarIntegration } from './calendarIntegration';

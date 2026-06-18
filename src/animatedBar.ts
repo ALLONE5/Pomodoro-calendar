@@ -4,7 +4,7 @@
  */
 
 import { App } from 'obsidian';
-import { PomodoroSession } from './pomodoro';
+import { PomodoroSession, getSessionEmoji, getCompletedEmoji } from './pomodoro';
 
 interface AnimationConfig {
 	character: string;
@@ -381,8 +381,8 @@ export class PomodoroAnimatedBar {
 	updateCompletedCount(session: PomodoroSession | null): void {
 		this.completedCount = session ? session.completedCount : 0;
 		if (this.totalDurationDisplay) {
-			const emoji = (!session || session.completedCount === 0) ? '🍅' :
-				session?.type === 'shortBreak' ? '☕' : '🌴';
+			const emoji = (!session || session.completedCount === 0) ? getCompletedEmoji() :
+				getSessionEmoji(session.type);
 			this.totalDurationDisplay.textContent = `${emoji} x${session ? session.completedCount : 0}`;
 		}
 	}

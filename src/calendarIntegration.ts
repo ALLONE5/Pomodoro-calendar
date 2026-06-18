@@ -4,7 +4,7 @@
  */
 
 import { App, Notice, requestUrl } from 'obsidian';
-import { PomodoroSession, PomodoroType } from './pomodoro';
+import { PomodoroSession, PomodoroType, getCompletedEmoji } from './pomodoro';
 
 /**
  * Calendar Event Interface
@@ -307,7 +307,7 @@ END:VCALENDAR`;
 			endTime.setSeconds(endTime.getSeconds() + session.duration);
 		}
 
-		const emoji = '🍅';
+		const emoji = getCompletedEmoji();
 
 		const title = `${emoji} 番茄钟专注`;
 

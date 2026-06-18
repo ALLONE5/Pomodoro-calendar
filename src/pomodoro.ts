@@ -277,3 +277,19 @@ export class PomodoroTimer {
 	}
 
 }
+
+/**
+ * Get the emoji for a given session type
+ */
+export function getSessionEmoji(type: PomodoroType | null): string {
+	if (!type) return '🍅';
+	return type === 'pomodoro' ? '🍅' :
+	       type === 'shortBreak' ? '☕' : '🌴';
+}
+
+/**
+ * Get the emoji for completed focus session (always tomato)
+ */
+export function getCompletedEmoji(): string {
+	return '🍅';
+}
