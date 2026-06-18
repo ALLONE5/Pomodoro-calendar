@@ -466,6 +466,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 				const session = this.pomodoroTimer.start(storedSession.type);
 				session.remaining = remaining;
 				session.id = storedSession.id;
+				session.startTime = startTime; // Restore original start time
 
 				// Show floating bar
 				this.animatedBar?.show();

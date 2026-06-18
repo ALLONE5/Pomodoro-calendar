@@ -123,6 +123,7 @@ export class PomodoroTimer {
 			completedCount: this.totalCompletedCount
 		};
 
+			console.log('Pomodoro started - type:', sessionType, 'startTime:', this.session.startTime);
 		this.startTimer();
 		this.callbacks.onStart?.(this.session);
 
