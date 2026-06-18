@@ -226,7 +226,7 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-time-clickable { display: flex; align-items: center; gap: 4px; cursor: pointer; pointer-events: auto; transition: opacity 0.2s ease; user-select: none; background: var(--background-secondary, #1e1e1e); padding: 4px 10px; border-radius: 6px; }
 	.pomodoro-time-clickable:hover { opacity: 0.8; }
 	.pomodoro-time-display { font-size: 18px; font-weight: 700; color: var(--text-accent, #7ee787); text-shadow: 0 0 8px rgba(126, 231, 135, 0.3); }
-	.pomodoro-total-duration { font-size: 12px; color: var(--text-muted, #999); font-weight: 500; }
+	.pomodoro-total-duration { font-size: 16px; color: var(--text-muted, #999); font-weight: 500; }
 	.pomodoro-percent-display { font-size: 12px; color: var(--text-muted, #999); font-weight: 600; }
 	.pomodoro-celebration-particle { position: absolute; font-size: 16px; animation: particle-fly 2s ease forwards; pointer-events: none; z-index: 30; }
 	@keyframes particle-fly { 0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } 100% { transform: translateY(-80px) scale(0) rotate(360deg); opacity: 0; } }
