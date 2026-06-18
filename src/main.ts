@@ -670,16 +670,17 @@ export default class PomodoroCalendarPlugin extends Plugin {
 			}
 		}
 
-		// Create calendar event with optional custom title
-		if (this.settings.enableCalendarIntegration) {
-			// Only prompt for pomodoro sessions, not breaks
-			let customTitle = '';
-			if (session.type === 'pomodoro') {
-				const modal = new InputModal(this.app, '留空使用默认标题', '');
-				customTitle = await modal.getInput();
-			}
+
+		// Check if this was a manual completion
+		const wasManual = (session as any).manuallyCompleted !== false;
+
+		// Create calendar event only for manually completed pomodoros
+		if (this.settings.enableCalendarIntegration && wasManual && session.type === 'pomodoro') {
+			const modal = new InputModal(this.app, '留空使用默认标题', '');
+			const customTitle = await modal.getInput();
 			this.calendarIntegration.createPomodoroEvent(session, customTitle);
 		}
+
 
 		// Update statistics
 		if (session.type === 'pomodoro') {
@@ -701,7 +702,6 @@ export default class PomodoroCalendarPlugin extends Plugin {
 		}, 1000);
 
 		// Auto-start next if enabled (only for natural completion, not manual)
-		const wasManual = (session as any).manuallyCompleted !== false;
 		if (!wasManual) {
 			// Only auto-start if it was a natural completion
 			if (session.type === 'pomodoro' && this.settings.autoStartBreak) {

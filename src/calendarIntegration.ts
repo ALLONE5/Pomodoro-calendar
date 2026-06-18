@@ -301,8 +301,10 @@ END:VCALENDAR`;
 	 */
 	private buildPomodoroEvent(session: PomodoroSession): CalendarEvent {
 		const startTime = session.startTime || new Date();
-		const endTime = new Date(startTime);
-		endTime.setSeconds(endTime.getSeconds() + session.duration);
+		const endTime = session.endTime ? new Date(session.endTime) : new Date(startTime);
+		if (!session.endTime) {
+			endTime.setSeconds(endTime.getSeconds() + session.duration);
+		}
 
 		const emoji = session.type === 'pomodoro' ? '🍅' :
 		              session.type === 'shortBreak' ? '☕' : '🌴';
