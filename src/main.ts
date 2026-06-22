@@ -203,8 +203,9 @@ export default class PomodoroCalendarPlugin extends Plugin {
 	.pomodoro-animated-bar { position: fixed; left: 0; right: 0; bottom: 60px; height: 70px; background: transparent; display: none; flex-direction: column; justify-content: flex-end; z-index: 1000; opacity: 1; transition: opacity 0.3s ease; pointer-events: none; }
 	.pomodoro-animated-bar.pomodoro-visible { opacity: 1; }
 	.pomodoro-animated-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: transparent; margin: 0 8px; pointer-events: none; }
-	.pomodoro-animated-controls { position: absolute; bottom: 100%; right: 12px; margin-bottom: -26px; transform: translateY(0); display: flex; gap: 6px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-			.pomodoro-animated-bar:has(.pomodoro-time-clickable:hover) .pomodoro-animated-controls { opacity: 1; pointer-events: auto; }
+	.pomodoro-animated-controls { position: absolute; bottom: 100%; right: 12px; margin-bottom: -26px; transform: translateY(0); display: flex; gap: 6px; flex-direction: row; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; transition-delay: 0.3s; }
+			.pomodoro-animated-bar:has(.pomodoro-time-clickable:hover) .pomodoro-animated-controls,
+		.pomodoro-animated-controls:hover { opacity: 1; pointer-events: auto; transition-delay: 0s; }
 .pomodoro-direction-rtl .pomodoro-animated-controls { right: auto; left: 12px; margin-bottom: -26px; }
 	.pomodoro-action-btn { opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
 	.pomodoro-animated-bar:hover .pomodoro-action-btn { opacity: 1; pointer-events: auto; }
