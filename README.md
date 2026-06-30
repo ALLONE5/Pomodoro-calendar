@@ -4,7 +4,7 @@
 
 ## 中文
 
-一个功能强大的 Obsidian 番茄钟插件，支持与 Full Calendar Remastered 插件集成，实现多设备同步。
+一个功能强大的 Obsidian 番茄钟插件，支持与 CalDAV 日历集成，实现多设备同步。
 
 ## 功能特点
 
@@ -12,7 +12,7 @@
 - 🌈 **彩虹进度条** - 精美的彩虹渐变进度条，随时间实时更新
 - 🎨 **可爱动画** - 完成时的庆祝动画、运行时的弹跳动画
 - ⚙️ **可自定义时长** - 自定义番茄钟、小休、长休的时长
-- 📅 **日历集成** - 与 Full Calendar Remastered 深度集成，在日历中实时显示
+- 📅 **CalDAV 日历集成** - 支持 iCloud、Google Calendar 等 CalDAV 服务的双向同步
 - 🔄 **多端同步** - 通过 iCloud/Syncthing 自动同步状态到其他设备
 - 🎯 **右键菜单** - 右键/长按显示更多操作选项
 - 📊 **统计数据** - 记录完成的番茄钟数量和专注时长
@@ -21,7 +21,7 @@
 
 ## English
 
-A powerful Pomodoro timer plugin for Obsidian with animated rainbow progress bar and Full Calendar Remastered integration for multi-device sync.
+A powerful Pomodoro timer plugin for Obsidian with animated rainbow progress bar and CalDAV calendar integration for multi-device sync.
 
 ## Features
 
@@ -29,7 +29,7 @@ A powerful Pomodoro timer plugin for Obsidian with animated rainbow progress bar
 - 🌈 **Rainbow Progress Bar** - Beautiful animated gradient progress bar that updates in real-time
 - 🎨 **Cute Animations** - Celebration animation on completion, bouncing animation while running
 - ⚙️ **Customizable Durations** - Customize Pomodoro, short break, and long break durations
-- 📅 **Calendar Integration** - Deep integration with Full Calendar Remastered, display in calendar in real-time
+- 📅 **CalDAV Integration** - Two-way sync with CalDAV services (iCloud, Google Calendar, etc.)
 - 🔄 **Multi-device Sync** - Automatically sync state to other devices via iCloud/Syncthing
 - 🎯 **Right-click Menu** - Right-click/long-press to show more options
 - 📊 **Statistics** - Track completed Pomodoros and focus time
@@ -80,21 +80,21 @@ A powerful Pomodoro timer plugin for Obsidian with animated rainbow progress bar
 - ❌ Cancel Pomodoro
 - ⚙️ Open Pomodoro Settings
 
-### 日历集成 / Calendar Integration
+### 日历集成 / CalDAV Integration
 
 **中文：**
-1. 确保已安装 **Full Calendar Remastered** 插件
-2. 在番茄钟设置中启用 "日历集成"
-3. 选择默认日历
-4. 开始番茄钟后，事件会自动创建到选定的日历中
-5. 结束时间会实时更新
+1. 在番茄钟设置中启用 "CalDAV 日历集成"
+2. 配置 CalDAV 服务器地址（支持 iCloud、Google Calendar 等）
+3. 输入用户名和密码（iCloud 需要应用专用密码）
+4. 完成番茄钟后，会自动创建日历事件
+5. 取消番茄钟时，会同步删除日历事件
 
 **English:**
-1. Make sure **Full Calendar Remastered** plugin is installed
-2. Enable "Calendar Integration" in Pomodoro settings
-3. Select default calendar
-4. After starting Pomodoro, events will be automatically created in the selected calendar
-5. End time updates in real-time
+1. Enable "CalDAV Integration" in Pomodoro settings
+2. Configure CalDAV server URL (supports iCloud, Google Calendar, etc.)
+3. Enter username and password (iCloud requires app-specific password)
+4. Completed Pomodoros will automatically create calendar events
+5. Canceling Pomodoro will sync delete the calendar event
 
 ### 多端同步 / Multi-device Sync
 
@@ -168,7 +168,7 @@ npm run build
 
 - TypeScript
 - Obsidian Plugin API
-- Full Calendar Remastered API
+- CalDAV Protocol
 - CSS3 Animations
 
 ## 贡献 / Contributing
@@ -184,8 +184,8 @@ MIT License
 
 **中文：**
 - [Obsidian](https://obsidian.md/) - 强大的笔记应用
-- [Full Calendar Remastered](https://github.com/obsidian-full-calendar-remastered/plugin-full-calendar) - 日历集成插件
+- [CalDAV](https://en.wikipedia.org/wiki/CalDAV) - 开放的日历同步协议
 
 **English:**
 - [Obsidian](https://obsidian.md/) - Powerful note-taking app
-- [Full Calendar Remastered](https://github.com/obsidian-full-calendar-remastered/plugin-full-calendar) - Calendar integration plugin
+- [CalDAV](https://en.wikipedia.org/wiki/CalDAV) - Open calendar synchronization protocol

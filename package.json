@@ -1,7 +1,7 @@
 {
   "name": "obsidian-pomodoro-calendar",
-  "version": "0.1.0",
-  "description": "A Pomodoro timer plugin for Obsidian with Full Calendar Remastered integration",
+  "version": "1.0.0",
+  "description": "A Pomodoro timer plugin for Obsidian with CalDAV calendar integration",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

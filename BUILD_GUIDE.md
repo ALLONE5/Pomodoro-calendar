@@ -59,7 +59,7 @@ obsidian-pomodoro-calendar/
 │   ├── pomodoro.ts            # 番茄钟核心逻辑
 │   ├── statusBar.ts           # 状态栏彩虹进度条 UI
 │   ├── settings.ts            # 设置面板
-│   ├── calendarIntegration.ts # Full Calendar Remastered 集成
+│   ├── calendarIntegration.ts # CalDAV 日历集成
 │   ├── dataStore.ts          # 数据存储与多端同步
 │   └── styles.css            # 样式和动画
 ├── manifest.json              # 插件清单
@@ -78,7 +78,7 @@ obsidian-pomodoro-calendar/
 2. ✅ 左键点击可以开始/暂停
 3. ✅ 右键点击显示菜单
 4. ✅ 设置面板可以打开
-5. ✅ 安装 Full Calendar Remastered 后可以选择日历
+5. ✅ 配置 CalDAV 后可以同步到日历
 6. ✅ 番茄钟结束时显示庆祝动画
 
 ## 故障排除
@@ -91,9 +91,10 @@ obsidian-pomodoro-calendar/
 
 ### 日历集成不工作
 
-1. 确保已安装 Full Calendar Remastered 插件
-2. 在设置中启用 "日历集成"
-3. 选择一个默认日历
+1. 确保已配置 CalDAV 服务器地址
+2. 在设置中启用 "CalDAV 日历集成"
+3. 测试连接验证配置是否正确
+4. 确保使用正确的用户名和应用专用密码（iCloud）
 
 ### 多端同步不工作
 
