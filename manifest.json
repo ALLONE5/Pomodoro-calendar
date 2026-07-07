@@ -1,7 +1,7 @@
 {
   "id": "pomodoro-calendar",
   "name": "Pomodoro Calendar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.4.0",
   "description": "A Pomodoro timer plugin with animated progress bar and CalDAV calendar integration.",
   "author": "ALLONE5",

@@ -1,6 +1,6 @@
 {
   "name": "obsidian-pomodoro-calendar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Pomodoro timer plugin for Obsidian with CalDAV calendar integration",
   "main": "main.js",
   "scripts": {
