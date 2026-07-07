@@ -67,7 +67,7 @@ export class PomodoroAnimatedBar {
 		// Create main container
 		this.containerEl = document.createElement('div');
 		this.containerEl.className = 'pomodoro-animated-bar';
-		this.containerEl.style.display = 'none';
+			this.containerEl.addClass('pomodoro-hidden');
 
 		// Background
 		const bgEl = this.containerEl.createEl('div', {
@@ -154,7 +154,7 @@ export class PomodoroAnimatedBar {
 			text: this.config.character
 		});
 		// Initialize gold star as transparent
-		this.characterGold.style.opacity = '0';
+			this.characterGold.style.setProperty("--character-opacity", "0");
 
 		// Progress percentage display
 		const progressText = this.containerEl.createEl('div', {
@@ -213,8 +213,7 @@ export class PomodoroAnimatedBar {
 			// Position along the track with margin on edges
 			const margin = 3; // 3% margin on each side
 			const position = margin + (i / 9) * (100 - 2 * margin);
-			coin.style.left = `${position}%`;
-			coin.style.top = '50%';
+				coin.style.setProperty("--coin-position", position + "%");
 		}
 	}
 
@@ -236,7 +235,7 @@ export class PomodoroAnimatedBar {
 	show(): void {
 		if (!this.containerEl || this.isDestroyed) return;
 
-		this.containerEl.style.display = 'flex';
+			this.containerEl.removeClass("pomodoro-hidden");
 		setTimeout(() => {
 			this.containerEl?.addClass('pomodoro-visible');
 		}, 10);
@@ -254,7 +253,7 @@ export class PomodoroAnimatedBar {
 
 		setTimeout(() => {
 			if (!this.isCurrentlyVisible) {
-				this.containerEl!.style.display = 'none';
+					this.containerEl!.addClass("pomodoro-hidden");
 			}
 		}, 300);
 
@@ -296,18 +295,18 @@ export class PomodoroAnimatedBar {
 
 		// Update character position
 		if (this.characterWhite) {
-			this.characterWhite.style.left = `${displayPercentage}%`;
+				this.characterWhite.style.setProperty("--character-position", displayPercentage + "%");
 		}
 		if (this.characterGold) {
-			this.characterGold.style.left = `${displayPercentage}%`;
+				this.characterGold.style.setProperty("--character-position", displayPercentage + "%");
 			// Update gold star opacity (color change from white to gold)
 			const goldOpacity = percentage / 100;
-			this.characterGold.style.setProperty('opacity', `${goldOpacity}`, 'important');
+				this.characterGold.style.setProperty("--character-opacity", goldOpacity.toString());
 		}
 
 		// Update white track width (shows how far the star has run)
 		if (this.whiteTrack) {
-			this.whiteTrack.style.width = `${percentage}%`;
+				this.whiteTrack.style.setProperty("--progress-width", percentage + "%");
 		}
 
 		// Update time display
@@ -425,8 +424,8 @@ export class PomodoroAnimatedBar {
 				particle.textContent = randomItem;
 
 				// Random position
-				particle.style.left = `${Math.random() * 100}%`;
-				particle.style.animationDelay = `${Math.random() * 0.5}s`;
+					particle.style.setProperty("--particle-left", Math.random() * 100 + "%");
+					particle.style.setProperty("--particle-delay", Math.random() * 0.5 + "s");
 
 				// Remove after animation
 				setTimeout(() => {

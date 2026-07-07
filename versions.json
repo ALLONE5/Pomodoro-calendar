@@ -1,3 +1,3 @@
 {
-  "1.0.0": "First public release - Pomodoro timer with CalDAV calendar integration"
+  "1.0.1": "Fix Obsidian plugin review issues - remove dynamic styles, update minAppVersion, fix API usage"
 }

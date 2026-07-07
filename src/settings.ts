@@ -75,7 +75,9 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	 * Create Timer Settings Section
 	 */
 	private createTimerSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '⏱️ 计时器设置' });
+		new Setting(containerEl)
+			.setName('⏱️ 计时器设置')
+			.setHeading();
 
 		// Pomodoro Duration
 		new Setting(containerEl)
@@ -86,7 +88,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				text.inputEl.min = '1';
 				text.inputEl.max = '60';
 				text.inputEl.value = this.plugin.settings.pomodoroDuration.toString();
-				text.inputEl.style.width = '60px';
+				text.inputEl.addClass('pomodoro-number-input');
 			})
 			.addButton(button => button
 				.setButtonText('保存')
@@ -121,7 +123,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				text.inputEl.min = '1';
 				text.inputEl.max = '30';
 				text.inputEl.value = this.plugin.settings.shortBreakDuration.toString();
-				text.inputEl.style.width = '60px';
+				text.inputEl.addClass('pomodoro-number-input');
 			})
 			.addButton(button => button
 				.setButtonText('保存')
@@ -154,7 +156,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				text.inputEl.min = '5';
 				text.inputEl.max = '60';
 				text.inputEl.value = this.plugin.settings.longBreakDuration.toString();
-				text.inputEl.style.width = '60px';
+				text.inputEl.addClass('pomodoro-number-input');
 			})
 			.addButton(button => button
 				.setButtonText('保存')
@@ -187,7 +189,7 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 				text.inputEl.min = '2';
 				text.inputEl.max = '10';
 				text.inputEl.value = this.plugin.settings.longBreakInterval.toString();
-				text.inputEl.style.width = '60px';
+				text.inputEl.addClass('pomodoro-number-input');
 			})
 			.addButton(button => button
 				.setButtonText('保存')
@@ -237,7 +239,9 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	 * Create Progress Bar Settings Section
 	 */
 	private createProgressBarSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '🎨 进度条样式' });
+		new Setting(containerEl)
+			.setName('🎨 进度条样式')
+			.setHeading();
 
 			// Track Items Style
 			new Setting(containerEl)
@@ -288,7 +292,9 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	 * Create Calendar Settings Section
 	 */
 	private createCalendarSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '📅 CalDAV 日历集成' });
+		new Setting(containerEl)
+			.setName('📅 CalDAV 日历集成')
+			.setHeading();
 
 		// Enable Calendar Integration
 		new Setting(containerEl)
@@ -395,7 +401,9 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 	 * Create Notification Settings Section
 	 */
 	private createNotificationSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: '🔔 通知设置' });
+		new Setting(containerEl)
+			.setName('🔔 通知设置')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('显示通知')
