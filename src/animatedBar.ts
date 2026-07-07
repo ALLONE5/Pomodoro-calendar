@@ -150,11 +150,9 @@ export class PomodoroAnimatedBar {
 
 		// Gold star (top layer - opacity changes with progress)
 		this.characterGold = this.characterEl.createEl('span', {
-			cls: 'pomodoro-character-gold',
+			cls: 'pomodoro-character-gold pomodoro-character-gold-hidden',
 			text: this.config.character
 		});
-		// Initialize gold star as transparent
-			this.characterGold.style.setProperty("--character-opacity", "0");
 
 		// Progress percentage display
 		const progressText = this.containerEl.createEl('div', {

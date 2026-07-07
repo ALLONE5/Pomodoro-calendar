@@ -55,7 +55,9 @@ export class PomodoroSettingsTab extends PluginSettingTab {
 		containerEl.addClass('pomodoro-settings');
 
 		// Header
-		containerEl.createEl('h2', { text: '🍅 番茄钟设置' });
+		new Setting(containerEl)
+			.setName('🍅 番茄钟设置')
+			.setHeading();
 
 		// Timer Settings Section
 		this.createTimerSettings(containerEl);
