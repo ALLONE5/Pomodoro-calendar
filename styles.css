@@ -157,7 +157,7 @@
 	top: 0;
 	left: 0;
 	height: 100%;
-	width: 0%;
+	width: var(--progress-width, 0%);
 	background: color-mix(in srgb, var(--interactive-accent) 80%, transparent);
 	transition: width 0.3s ease;
 	border-radius: 6px;
@@ -183,6 +183,8 @@
 
 .pomodoro-track-coin {
 	position: absolute;
+	left: var(--coin-position, 50%);
+	top: 50%;
 	font-size: 13px;
 	opacity: 0.8;
 	color: var(--text-normal, #ddd);
@@ -202,6 +204,7 @@
 
 .pomodoro-character-white {
 	position: absolute;
+	left: var(--character-position, 0%);
 	top: 50%;
 	transform: translate(-50%, -50%);
 	font-size: 24px;
@@ -212,11 +215,12 @@
 
 .pomodoro-character-gold {
 	position: absolute;
+	left: var(--character-position, 0%);
 	top: 50%;
 	transform: translate(-50%, -50%);
 	font-size: 24px;
 	color: var(--text-accent, #ff6b6b);
-	opacity: 0;
+	opacity: var(--character-opacity, 0);
 	transition: left 0.3s ease, opacity 0.3s ease;
 	filter: drop-shadow(0 0 8px var(--text-accent, #ff6b6b));
 }
@@ -290,8 +294,10 @@
 
 .pomodoro-celebration-particle {
 	position: absolute;
+	left: var(--particle-left, 50%);
 	font-size: 16px;
 	animation: particle-fly 2s ease forwards;
+	animation-delay: var(--particle-delay, 0s);
 	pointer-events: none;
 	z-index: 30;
 }

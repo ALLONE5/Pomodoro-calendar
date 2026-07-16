@@ -150,7 +150,7 @@ export class PomodoroAnimatedBar {
 
 		// Gold star (top layer - opacity changes with progress)
 		this.characterGold = this.characterEl.createEl('span', {
-			cls: 'pomodoro-character-gold pomodoro-character-gold-hidden',
+			cls: 'pomodoro-character-gold',
 			text: this.config.character
 		});
 
