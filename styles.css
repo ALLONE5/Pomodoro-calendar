@@ -58,6 +58,7 @@
 }
 
 .pomodoro-animated-bar.pomodoro-visible {
+	display: flex;
 	opacity: 1;
 }
 
